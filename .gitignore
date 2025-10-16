@@ -3,6 +3,15 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# Generated output files
+*.pkl
+*.png
+*.txt
+
+# Ignore specific output directories by pattern
+# This will ignore folders like (10_55_25)-(12_5_1)-(5_6_14)_volNone_lvl2/
+(*/
+
 # C extensions
 *.so
 
