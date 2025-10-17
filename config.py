@@ -1,7 +1,5 @@
-# --- 基本設定 ---
-
 # 実行名を定義します。出力ディレクトリの名前の一部として使用されます。
-RUN_NAME = "135_Random_Test"
+RUN_NAME = "18_90_25Random_Experiment_1"
 # 混合ツリーの階層構造（factors）を決定するモードを選択します。
 # 'manual': TARGETS_FOR_MANUAL_MODE で定義された factors を手動で設定します。
 # 'auto': 各ターゲットの ratios の合計値から factors を自動計算します。
@@ -18,7 +16,7 @@ ENABLE_CHECKPOINTING = False
 # --- 制約条件 ---
 
 # ノード間で共有（中間液を融通）できる液量の最大値を設定します。Noneの場合は無制限です。
-MAX_SHARING_VOLUME = 3
+MAX_SHARING_VOLUME = 4
 # 中間液を共有する際の、供給元と供給先の階層レベル（level）の差の最大値を設定します。Noneの場合は無制限です。
 MAX_LEVEL_DIFF = None
 # 1回の混合操作で使用できるミキサーの最大容量（入力の合計値）を設定します。これはDFMMアルゴリズムで混合ツリーの階層を決定する際の因数の最大値にもなります。
@@ -28,9 +26,26 @@ MAX_MIXER_SIZE = 5
 # FACTOR_EXECUTION_MODE が 'random' の場合にのみ使用されます。
 RANDOM_SETTINGS = {
     't_reagents': 3,       # ランダムシナリオにおける試薬の種類数。
-    'n_targets': 2,        # ランダムシナリオにおけるターゲット（目標混合液）の数。
-    'S_ratio_sum': 135,     # ランダムに生成される比率リストの合計値。
-    'k_runs': 10,           # 生成・実行するランダムシナリオの総数。
+    'n_targets': 3,        # ランダムシナリオにおけるターゲット（目標混合液）の数。
+    'k_runs': 5,           # 生成・実行するランダムシナリオの総数。
+
+    # --- 混合比和の生成ルール（以下の優先順位で適用されます） ---
+    # 優先度1: 固定シーケンス（n_targetsと要素数を一致させる必要あり）
+    # 18*5' と書くと「合計18の混合比を生成し、各要素を5倍する」というロジックが適用
+    # 例： 'S_ratio_sum_sequence': [18, 18*5, 25]
+    'S_ratio_sum_sequence': [
+        18,
+        {'base_sum': 18, 'multiplier': 5},
+        25
+    ],
+
+    # 優先度2: 候補リストからのランダム選択
+    # sequenceが空の場合にこちらが評価されます。ターゲット毎にこのリストからランダムに値が選ばれます。
+    # 例： 'S_ratio_sum_candidates': [18, 24, 30, 36]
+    'S_ratio_sum_candidates': [18, 24, 30, 36],
+
+    # 優先度3: 上記2つが有効でない場合のデフォルト値
+    'S_ratio_sum': 18,
 }
 # --- 'auto' / 'auto_permutations' モード用設定 ---
 # FACTOR_EXECUTION_MODE が 'auto' または 'auto_permutations' の場合に使用されます。
@@ -59,7 +74,8 @@ TARGETS_FOR_MANUAL_MODE = [
     # {'name': 'Target 1', 'ratios': [45, 26, 64], 'factors': [3, 3, 3, 5]},
     # {'name': 'Target 2', 'ratios': [80, 26, 29], 'factors': [3, 3, 3, 5]},
     # {'name': 'Target 1', 'ratios': [10, 55, 25], 'factors': [3, 5, 3, 2]},
-    {'name': 'Target 1', 'ratios': [2, 11, 5], 'factors': [3, 3, 2]},
+    {'name': 'Target 1', 'ratios': [6, 33, 15], 'factors': [3, 3, 3, 2]},
+    # {'name': 'Target 1', 'ratios': [2, 11, 5], 'factors': [3, 3, 2]},
     {'name': 'Target 2', 'ratios': [12, 5, 1], 'factors': [3, 3, 2]},
     # {'name': 'Target 3', 'ratios': [4, 5, 9], 'factors': [3, 3, 2]},
     # {'name': 'Target 3', 'ratios': [3, 5, 10], 'factors': [3, 3, 2]},

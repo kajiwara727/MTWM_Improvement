@@ -71,15 +71,23 @@ class MTWMProblem:
         # 全てのノードペアの組み合わせについて接続可能性をチェック
         for (m_dst, l_dst, k_dst), (m_src, l_src, k_src) in itertools.product(all_nodes, repeat=2):
             # --- 接続条件 ---
-            # 1. 供給元(src)は供給先(dst)より下位のレベルでなければならない
-            if l_src <= l_dst: continue
-            # 2. レベル差が設定された上限を超えてはならない
+            # 1. 自分自身を材料にはできない
+            if (m_dst, l_dst, k_dst) == (m_src, l_src, k_src):
+                continue
+
+            # 2. 供給元(src)は供給先(dst)より下位のレベルでなければならない。
+            #    ただし、供給元が最終生成物(rootノード, l_src=0)の場合は例外的に許可する。
+            is_valid_level_connection = (l_src > l_dst) or (l_src == 0)
+            if not is_valid_level_connection:
+                continue
+
+            # 3. レベル差が設定された上限を超えてはならない
             if MAX_LEVEL_DIFF is not None and l_src > l_dst + MAX_LEVEL_DIFF: continue
 
             p_dst = self.p_values[m_dst][(l_dst, k_dst)]
             f_dst = self.targets_config[m_dst]['factors'][l_dst]
             p_src = self.p_values[m_src][(l_src, k_src)]
-            # 3. 濃度保存則を満たすためのP値の整数除算条件
+            # 4. 濃度保存則を満たすためのP値の整数除算条件
             if (p_dst // f_dst) % p_src != 0: continue
 
             # 条件をすべて満たした場合、供給元候補としてマップに追加

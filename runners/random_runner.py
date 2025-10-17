@@ -1,5 +1,5 @@
-# runners/random_runner.py
 import os
+import random
 from .base_runner import BaseRunner
 from core.dfmm import find_factors_for_sum
 from utils.helpers import generate_random_ratios
@@ -8,61 +8,119 @@ from reporting.summary import save_random_run_summary
 class RandomRunner(BaseRunner):
     """
     'random' モードの実行を担当するクラス。
-    このモードでは、config.pyのRANDOM_SETTINGSで定義されたパラメータに基づき、
-    ランダムな比率を持つターゲットを複数生成し、それぞれのシナリオで
-    最適化を実行します。統計的な分析や、様々な条件下でのソルバーの
-    性能評価に役立ちます。
+    config.pyのRANDOM_SETTINGSに基づき、ランダムなシナリオを複数回実行します。
     """
     def run(self):
-        # 'random' モード用の設定を取得
         settings = self.config.RANDOM_SETTINGS
         print(f"Preparing to run {settings['k_runs']} random simulations...")
 
-        # 全てのランダム実行の結果をまとめるための基本ディレクトリ名を設定
         base_run_name = f"{self.config.RUN_NAME}_random_runs"
-        # ランダム実行は設定が都度変わるため、ハッシュは固定文字列 "random" を使用
         base_output_dir = self._get_unique_output_directory_name("random", base_run_name)
         os.makedirs(base_output_dir, exist_ok=True)
         print(f"All random run results will be saved under: '{base_output_dir}/'")
 
-        all_run_results = [] # 全実行結果をサマリー用に保存するリスト
+        all_run_results = []
 
-        # 設定された回数 (k_runs) だけループを実行
         for i in range(settings['k_runs']):
             print(f"\n{'='*20} Running Random Simulation {i+1}/{settings['k_runs']} {'='*20}")
 
-            # このシミュレーションで使用するターゲット設定を動的に生成
+            # --- 混合比和の決定ロジック ---
+            sequence = settings.get('S_ratio_sum_sequence')
+            candidates = settings.get('S_ratio_sum_candidates')
+            n_targets = settings.get('n_targets', 0)
+            
+            if sequence and isinstance(sequence, list) and len(sequence) == n_targets:
+                mode = 'sequence'
+                specs_for_run = sequence
+                print(f"-> Mode: Fixed Sequence. Using S_ratio_sum specifications: {specs_for_run}")
+            
+            elif candidates and isinstance(candidates, list) and len(candidates) > 0:
+                mode = 'random_candidates'
+                specs_for_run = [random.choice(candidates) for _ in range(n_targets)]
+                print(f"-> Mode: Random per Target. Generated S_ratio_sum specifications for this run: {specs_for_run}")
+
+            else:
+                mode = 'default'
+                default_sum = settings.get('S_ratio_sum', 0)
+                specs_for_run = [default_sum] * n_targets
+                print(f"-> Mode: Default. Using single S_ratio_sum '{default_sum}' for all targets.")
+            
             temp_config = []
-            for j in range(settings['n_targets']):
-                # 指定された試薬数と合計値になるランダムな比率リストを生成
-                ratios = generate_random_ratios(settings['t_reagents'], settings['S_ratio_sum'])
-                # 生成された比率から、混合階層 (factors) を自動計算
-                factors = find_factors_for_sum(sum(ratios), self.config.MAX_MIXER_SIZE)
-                if factors is None:
-                    # 階層を決定できない場合は、この実行をスキップ
-                    print(f"Warning: Could not determine factors for random ratios {ratios}. Skipping this run.")
-                    continue
+            valid_run = True
+            for j in range(n_targets):
+                spec = specs_for_run[j]
+                
+                # --- spec（設定値）を解析して、base_sumとmultiplierを決定 ---
+                base_sum = 0
+                multiplier = 1
+                
+                if isinstance(spec, dict):
+                    base_sum = spec.get('base_sum', 0)
+                    multiplier = spec.get('multiplier', 1)
+                elif isinstance(spec, (int, float)):
+                    base_sum = int(spec)
+                    multiplier = 1
+                else:
+                    print(f"Warning: Invalid spec format for target {j+1}: {spec}. Skipping this run.")
+                    valid_run = False
+                    break
+                
+                if base_sum <= 0:
+                    print(f"Warning: Invalid base_sum ({base_sum}) for target {j+1}. Skipping this run.")
+                    valid_run = False
+                    break
+                
+                try:
+                    # 1. 基本比率を生成
+                    base_ratios = generate_random_ratios(settings['t_reagents'], base_sum)
+                    # 2. 倍率を適用して最終的な比率を計算
+                    ratios = [r * multiplier for r in base_ratios]
+                    
+                    print(f"  -> Target {j+1}: Spec={spec}")
+                    print(f"     Base ratios (sum={base_sum}): {base_ratios} -> Multiplied by {multiplier} -> Final Ratios (sum={sum(ratios)}): {ratios}")
+                except ValueError as e:
+                    print(f"Warning: Could not generate base ratios for sum {base_sum}. Error: {e}. Skipping this run.")
+                    valid_run = False
+                    break
+
+                # 3. factorsを「base_sumの因数」と「multiplierの因数」の合成で生成
+                base_factors = find_factors_for_sum(base_sum, self.config.MAX_MIXER_SIZE)
+                if base_factors is None:
+                    print(f"Warning: Could not determine factors for base_sum {base_sum}. Skipping this run.")
+                    valid_run = False
+                    break
+
+                multiplier_factors = find_factors_for_sum(multiplier, self.config.MAX_MIXER_SIZE)
+                if multiplier_factors is None:
+                    print(f"Warning: Could not determine factors for multiplier {multiplier}. Skipping this run.")
+                    valid_run = False
+                    break
+                
+                factors = base_factors + multiplier_factors
+                
+                # 【変更点】factorsリストを降順（大きい順）にソートします
+                factors.sort(reverse=True)
+                
+                print(f"     Factors for base ({base_sum}): {base_factors} + Factors for multiplier ({multiplier}): {multiplier_factors} -> Sorted Final Factors: {factors}")
+
                 temp_config.append({
                     'name': f"RandomTarget_{i+1}_{j+1}",
                     'ratios': ratios,
                     'factors': factors
                 })
 
-            if not temp_config: continue # 有効なターゲットが生成されなかった場合
+            if not valid_run or not temp_config:
+                continue
 
-            # この実行の名称と出力ディレクトリを設定
             run_name = f"run_{i+1}"
             output_dir = os.path.join(base_output_dir, run_name)
 
-            # 共通の単一最適化実行メソッドを呼び出し
             final_waste, exec_time, total_ops, total_reagents = self._run_single_optimization(temp_config, output_dir, run_name)
 
-            # 結果をサマリー用リストに追加
             all_run_results.append({
                 'run_name': run_name, 'config': temp_config,
                 'final_value': final_waste, 'elapsed_time': exec_time,
                 'total_operations': total_ops, 'total_reagents': total_reagents
             })
 
-        # 全ての実行が完了したら、サマリーレポートを生成・保存
         save_random_run_summary(all_run_results, base_output_dir)

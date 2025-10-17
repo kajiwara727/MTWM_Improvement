@@ -246,11 +246,14 @@ class Z3Solver:
             total_used = z3.Sum(_get_outgoing_vars(self.problem, m_src, l_src, k_src))
             self.opt.add(z3.Implies(total_prod > 0, total_used > 0))
 
+    # z3_solver.py
+
     def _set_objective_function(self):
         """最適化の目的となる変数（総廃棄物量 or 総操作回数）を定義する。"""
         # --- 廃棄物量の定義 ---
         all_waste_vars = []
         for m_src, l_src, k_src, node in _iterate_all_nodes(self.problem):
+            # 変更点: l_src == 0 は最終生成物（ルートノード）なので、廃棄物の計算から除外する
             if l_src == 0: continue
             total_prod = z3.Sum(_get_node_inputs(node))
             total_used = z3.Sum(_get_outgoing_vars(self.problem, m_src, l_src, k_src))
@@ -260,6 +263,26 @@ class Z3Solver:
             all_waste_vars.append(waste_var)
         total_waste = z3.Int("total_waste")
         self.opt.add(total_waste == z3.Sum(all_waste_vars))
+
+        # --- 操作回数の定義 ---
+        all_activity_vars = []
+        for m, l, k, node in _iterate_all_nodes(self.problem):
+            is_active = z3.Bool(f"active_m{m}_l{l}_k{k}")
+            total_input = z3.Sum(_get_node_inputs(node))
+            self.opt.add(is_active == (total_input > 0))
+            all_activity_vars.append(z3.If(is_active, 1, 0))
+        total_operations = z3.Int("total_operations")
+        self.opt.add(total_operations == z3.Sum(all_activity_vars))
+
+        # --- 最適化モードに応じて目的関数を設定 ---
+        if self.objective_mode == 'waste':
+            self.opt.minimize(total_waste) # 総廃棄物量を最小化
+            return total_waste
+        elif self.objective_mode == 'operations':
+            self.opt.minimize(total_operations) # 総操作回数を最小化
+            return total_operations
+        else:
+            raise ValueError(f"Unknown optimization mode: '{self.objective_mode}'. Must be 'waste' or 'operations'.")
 
         # --- 操作回数の定義 ---
         all_activity_vars = []
