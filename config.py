@@ -1,5 +1,5 @@
 # 実行名を定義します。出力ディレクトリの名前の一部として使用されます。
-RUN_NAME = "18_90_25Random_Experiment_1"
+RUN_NAME = "18_90_25_Test1"
 # 混合ツリーの階層構造（factors）を決定するモードを選択します。
 # 'manual': TARGETS_FOR_MANUAL_MODE で定義された factors を手動で設定します。
 # 'auto': 各ターゲットの ratios の合計値から factors を自動計算します。
@@ -16,7 +16,7 @@ ENABLE_CHECKPOINTING = False
 # --- 制約条件 ---
 
 # ノード間で共有（中間液を融通）できる液量の最大値を設定します。Noneの場合は無制限です。
-MAX_SHARING_VOLUME = 4
+MAX_SHARING_VOLUME = 2
 # 中間液を共有する際の、供給元と供給先の階層レベル（level）の差の最大値を設定します。Noneの場合は無制限です。
 MAX_LEVEL_DIFF = None
 # 1回の混合操作で使用できるミキサーの最大容量（入力の合計値）を設定します。これはDFMMアルゴリズムで混合ツリーの階層を決定する際の因数の最大値にもなります。
@@ -27,16 +27,16 @@ MAX_MIXER_SIZE = 5
 RANDOM_SETTINGS = {
     't_reagents': 3,       # ランダムシナリオにおける試薬の種類数。
     'n_targets': 3,        # ランダムシナリオにおけるターゲット（目標混合液）の数。
-    'k_runs': 5,           # 生成・実行するランダムシナリオの総数。
+    'k_runs': 30,           # 生成・実行するランダムシナリオの総数。
 
     # --- 混合比和の生成ルール（以下の優先順位で適用されます） ---
     # 優先度1: 固定シーケンス（n_targetsと要素数を一致させる必要あり）
     # 18*5' と書くと「合計18の混合比を生成し、各要素を5倍する」というロジックが適用
     # 例： 'S_ratio_sum_sequence': [18, 18*5, 25]
     'S_ratio_sum_sequence': [
-        18,
-        {'base_sum': 18, 'multiplier': 5},
-        25
+        {'base_sum': 18, 'multiplier': 3},
+        {'base_sum': 18, 'multiplier': 3},
+        18
     ],
 
     # 優先度2: 候補リストからのランダム選択
@@ -51,9 +51,9 @@ RANDOM_SETTINGS = {
 # FACTOR_EXECUTION_MODE が 'auto' または 'auto_permutations' の場合に使用されます。
 # 'factors' を指定する必要はありません。自動で計算されます。
 TARGETS_FOR_AUTO_MODE = [
-    {'name': 'Target 1', 'ratios': [2, 11, 5]},
-    {'name': 'Target 2', 'ratios': [12, 5, 1]},
-    # {'name': 'Target 3', 'ratios': [5, 6, 14]},
+    {'name': 'Target 1', 'ratios': [1, 4, 13]},
+    {'name': 'Target 2', 'ratios': [21, 17, 52]},
+    {'name': 'Target 3', 'ratios': [8, 12, 5]},
     # {'name': 'Target 1', 'ratios': [45, 26, 64]},
     # {'name': 'Target 1', 'ratios': [2, 11, 5]},
     # {'name': 'Target 2', 'ratios': [80, 26, 29]},

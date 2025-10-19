@@ -132,7 +132,7 @@ class SolutionReporter:
     def _print_console_summary(self, results, min_value, elapsed_time):
         """最適化結果のサマリーをコンソールに出力する。"""
         time_str = f"(in {elapsed_time:.2f} sec)" if elapsed_time > 0 else "(from checkpoint)"
-        print(f"\nOptimal Solution Found {time_str}")
+        print(f"\n<Improvement>Optimal Solution Found {time_str}")
         objective_str = "Minimum Total Waste" if self.objective_mode == "waste" else "Minimum Operations"
         print(f"{objective_str}: {min_value}")
         print("="*18 + " SUMMARY " + "="*18)
