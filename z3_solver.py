@@ -274,25 +274,12 @@ class Z3Solver:
         total_operations = z3.Int("total_operations")
         self.opt.add(total_operations == z3.Sum(all_activity_vars))
 
-        # --- 最適化モードに応じて目的関数を設定 ---
-        if self.objective_mode == 'waste':
-            self.opt.minimize(total_waste) # 総廃棄物量を最小化
-            return total_waste
-        elif self.objective_mode == 'operations':
-            self.opt.minimize(total_operations) # 総操作回数を最小化
-            return total_operations
-        else:
-            raise ValueError(f"Unknown optimization mode: '{self.objective_mode}'. Must be 'waste' or 'operations'.")
-
-        # --- 操作回数の定義 ---
-        all_activity_vars = []
-        for m, l, k, node in _iterate_all_nodes(self.problem):
-            is_active = z3.Bool(f"active_m{m}_l{l}_k{k}")
-            total_input = z3.Sum(_get_node_inputs(node))
-            self.opt.add(is_active == (total_input > 0))
-            all_activity_vars.append(z3.If(is_active, 1, 0))
-        total_operations = z3.Int("total_operations")
-        self.opt.add(total_operations == z3.Sum(all_activity_vars))
+        # --- 総試薬使用量の定義 ---
+        all_reagent_vars = []
+        for _, _, _, node in _iterate_all_nodes(self.problem):
+            all_reagent_vars.extend(node.get('reagent_vars', []))
+        total_reagents = z3.Int("total_reagents")
+        self.opt.add(total_reagents == z3.Sum(all_reagent_vars))
 
         # --- 最適化モードに応じて目的関数を設定 ---
         if self.objective_mode == 'waste':
@@ -301,5 +288,8 @@ class Z3Solver:
         elif self.objective_mode == 'operations':
             self.opt.minimize(total_operations) # 総操作回数を最小化
             return total_operations
+        elif self.objective_mode == 'reagents':
+            self.opt.minimize(total_reagents) # 総試薬使用量を最小化
+            return total_reagents
         else:
-            raise ValueError(f"Unknown optimization mode: '{self.objective_mode}'. Must be 'waste' or 'operations'.")
+            raise ValueError(f"Unknown optimization mode: '{self.objective_mode}'. Must be 'waste', 'operations', or 'reagents'.")

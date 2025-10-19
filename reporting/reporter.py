@@ -133,7 +133,12 @@ class SolutionReporter:
         """最適化結果のサマリーをコンソールに出力する。"""
         time_str = f"(in {elapsed_time:.2f} sec)" if elapsed_time > 0 else "(from checkpoint)"
         print(f"\n<Improvement>Optimal Solution Found {time_str}")
-        objective_str = "Minimum Total Waste" if self.objective_mode == "waste" else "Minimum Operations"
+        if self.objective_mode == "waste":
+            objective_str = "Minimum Total Waste"
+        elif self.objective_mode == "operations":
+            objective_str = "Minimum Operations"
+        else:
+            objective_str = "Minimum Total Reagents"
         print(f"{objective_str}: {min_value}")
         print("="*18 + " SUMMARY " + "="*18)
         if results:
@@ -158,7 +163,12 @@ class SolutionReporter:
 
     def _build_summary_file_content(self, results, min_value, elapsed_time, dir_name):
         """ファイルに書き込むための全コンテンツを文字列リストとして構築する。"""
-        objective_str = "Minimum Total Waste" if self.objective_mode == "waste" else "Minimum Operations"
+        if self.objective_mode == "waste":
+            objective_str = "Minimum Total Waste"
+        elif self.objective_mode == "operations":
+            objective_str = "Minimum Operations"
+        else:
+            objective_str = "Minimum Total Reagents"
         content = [
             "="*40, f"Optimization Results for: {os.path.basename(dir_name)}", "="*40,
             f"\nSolved in {elapsed_time:.2f} seconds." if elapsed_time > 0 else "\nLoaded from checkpoint.",
