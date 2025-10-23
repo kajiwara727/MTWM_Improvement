@@ -1,6 +1,6 @@
 # main.py
 from config import FACTOR_EXECUTION_MODE
-from runners import standard_runner, random_runner, permutation_runner
+from runners import standard_runner, random_runner, permutation_runner, file_load_runner
 from utils.config_loader import Config
 
 def main():
@@ -21,6 +21,9 @@ def main():
     elif FACTOR_EXECUTION_MODE == 'auto_permutations':
         # 'auto_permutations' モードの場合
         runner = permutation_runner.PermutationRunner(Config)
+    elif FACTOR_EXECUTION_MODE == 'file_load': # <--- 追加
+        # 'file_load' モードの場合
+        runner = file_load_runner.FileLoadRunner(Config)
     else:
         # 未知のモードが指定された場合はエラーを発生させる
         raise ValueError(f"Unknown FACTOR_EXECUTION_MODE: '{FACTOR_EXECUTION_MODE}'.")
