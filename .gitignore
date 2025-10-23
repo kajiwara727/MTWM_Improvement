@@ -7,6 +7,7 @@ __pycache__/
 *.pkl
 *.png
 *.txt
+*.json
 
 # Ignore specific output directories by pattern
 # This will ignore folders like (10_55_25)-(12_5_1)-(5_6_14)_volNone_lvl2/
