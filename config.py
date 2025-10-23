@@ -1,5 +1,5 @@
 # 実行名を定義します。出力ディレクトリの名前の一部として使用されます。
-RUN_NAME = "reagents-test"
+RUN_NAME = "18-four-random"
 # 混合ツリーの階層構造（factors）を決定するモードを選択します。
 # 'manual': TARGETS_FOR_MANUAL_MODE で定義された factors を手動で設定します。
 # 'auto': 各ターゲットの ratios の合計値から factors を自動計算します。
@@ -34,16 +34,12 @@ RANDOM_SETTINGS = {
     # 優先度1: 固定シーケンス（n_targetsと要素数を一致させる必要あり）
     # 18*5' と書くと「合計18の混合比を生成し、各要素を5倍する」というロジックが適用
     # 例： 'S_ratio_sum_sequence': [18, 18*5, 25]
-    'S_ratio_sum_sequence': [
-        {'base_sum': 18, 'multiplier': 3},
-        {'base_sum': 18, 'multiplier': 3},
-        18
-    ],
+    
 
     # 優先度2: 候補リストからのランダム選択
     # sequenceが空の場合にこちらが評価されます。ターゲット毎にこのリストからランダムに値が選ばれます。
     # 例： 'S_ratio_sum_candidates': [18, 24, 30, 36]
-    'S_ratio_sum_candidates': [18, 24, 30, 36],
+    # 'S_ratio_sum_candidates': [18, 24, 30, 36],
 
     # 優先度3: 上記2つが有効でない場合のデフォルト値
     'S_ratio_sum': 18,
@@ -52,13 +48,16 @@ RANDOM_SETTINGS = {
 # FACTOR_EXECUTION_MODE が 'auto' または 'auto_permutations' の場合に使用されます。
 # 'factors' を指定する必要はありません。自動で計算されます。
 TARGETS_FOR_AUTO_MODE = [
-    {'name': 'Target 1', 'ratios': [2, 3, 7]},
-    {'name': 'Target 2', 'ratios': [1, 5, 6]},
-    {'name': 'Target 3', 'ratios': [4, 3, 5]},
+    # {'name': 'Target 1', 'ratios': [102, 26, 3, 3, 122]},
+    # {'name': 'Target 1', 'ratios': [2, 3, 7]},
+    # {'name': 'Target 2', 'ratios': [1, 5, 6]},
+    # {'name': 'Target 3', 'ratios': [4, 3, 5]},
     # {'name': 'Target 1', 'ratios': [45, 26, 64]},
-    # {'name': 'Target 1', 'ratios': [2, 11, 5]},
-    # {'name': 'Target 2', 'ratios': [80, 26, 29]},
-    #
+    {'name': 'Target 1', 'ratios': [1,8,9]},
+    {'name': 'Target 2', 'ratios': [2,1,15]},
+    {'name': 'Target 2', 'ratios': [3,4,11]},
+    {'name': 'Target 2', 'ratios': [6,7,5]},
+    
     # {'name': 'Target 3', 'ratios': [3, 5, 10]},
     # {'name': 'Target 4', 'ratios': [7, 7, 4]},
     # {'name': 'Target 2', 'ratios': [60, 25, 5]},

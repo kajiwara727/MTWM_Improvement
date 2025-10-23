@@ -52,7 +52,7 @@ class Z3Solver:
         self.problem = problem
         self.objective_mode = objective_mode
         self.opt = z3.Optimize() # Z3のOptimizeインスタンスを作成
-        z3.set_param('memory_max_size', 8192) # Z3が使用する最大メモリを設定（MB）
+        z3.set_param('memory_max_size', 16384) # Z3が使用する最大メモリを設定（MB）
         self.last_check_result = None
         self._set_all_constraints() # 全ての制約を設定
         self.objective_variable = self._set_objective_function() # 目的関数を設定
