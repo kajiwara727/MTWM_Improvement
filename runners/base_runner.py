@@ -6,7 +6,8 @@ from abc import ABC, abstractmethod
 # これらは、各ランナーが共通して使用するコアコンポーネントです。
 from core.problem import MTWMProblem
 from core.dfmm import build_dfmm_forest, calculate_p_values_from_structure
-from z3_solver import Z3Solver
+# from z3_solver import Z3Solver
+from or_tools_solver import OrToolsSolver # <--- この行を追加
 from reporting.analyzer import PreRunAnalyzer
 from reporting.reporter import SolutionReporter
 from utils.checkpoint import CheckpointHandler
@@ -78,7 +79,8 @@ class BaseRunner(ABC):
         analyzer.generate_report(output_dir)
 
         # 4. Z3ソルバーを初期化
-        solver = Z3Solver(problem, objective_mode=self.config.OPTIMIZATION_MODE)
+        # solver = Z3Solver(problem, objective_mode=self.config.OPTIMIZATION_MODE)
+        solver = OrToolsSolver(problem, objective_mode=self.config.OPTIMIZATION_MODE) # <--- この行に変更
         checkpoint_handler = None
         # チェックポイント機能が有効な場合、ハンドラを初期化
         if self.config.ENABLE_CHECKPOINTING and self.config.MODE != 'auto_permutations':

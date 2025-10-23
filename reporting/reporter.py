@@ -27,19 +27,18 @@ class SolutionReporter:
         """
         解の分析、コンソールへのサマリー出力、ファイルへの詳細レポート保存、
         そして結果の可視化という一連のレポート生成プロセスを実行します。
-
-        Args:
-            min_value (int): 最適化によって得られた目的関数の最小値。
-            elapsed_time (float): 最適化にかかった時間（秒）。
-            output_dir (str): レポートと画像を保存するディレクトリのパス。
         """
-        analysis_results = self.analyze_solution()
+        analysis_results = self.analyze_solution() # <--- analyze_solution() の結果を取得
+
+        # --- FIX: Or-ToolsのAnalyzeで発生する総廃棄物量の不整合を修正 ---
+        # 目的が 'waste' の場合、分析結果の合計 (results["total_waste"]) ではなく、
+        # 最適化で得られた目的関数の最小値 (min_value) を採用する。
+        if self.objective_mode == 'waste' and analysis_results is not None:
+             # min_valueは float の可能性もあるため、int() に変換
+             analysis_results['total_waste'] = int(min_value)
+        # --- END FIX ---
+
         self._print_console_summary(analysis_results, min_value, elapsed_time)
-        self._save_summary_to_file(analysis_results, min_value, elapsed_time, output_dir)
-        if self.model:
-            # 可視化クラスを呼び出してグラフを生成
-            visualizer = SolutionVisualizer(self.problem, self.model)
-            visualizer.visualize_solution(output_dir)
 
     def report_from_checkpoint(self, analysis, value, output_dir):
         """
