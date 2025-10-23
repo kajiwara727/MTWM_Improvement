@@ -124,3 +124,93 @@ def save_comparison_summary(results_list, output_dir, objective_mode):
     単一のサマリーファイルに保存します。
     """
     _calculate_and_save_summary(results_list, output_dir, "comparison_runs", "Comparison", objective_mode)
+
+def save_permutation_summary(results_list, output_dir, objective_mode):
+    """
+    'auto_permutations' モードの結果を分析し、ベストおよびセカンドベストのパターンを
+    詳細なサマリーファイル (_permutation_summary.txt) に保存します。
+    """
+    # 1. ソートキーを設定 (Noneでない値のみを対象とし、最小値がベスト)
+    successful_runs = [r for r in results_list if r['final_value'] is not None]
+    
+    # final_value (目的値) でソート (昇順)
+    successful_runs.sort(key=lambda x: x['final_value'])
+    
+    if not successful_runs:
+        print("\n[Permutation Summary] No successful runs found.")
+        return
+
+    min_value = successful_runs[0]['final_value']
+    
+    # 2. ベストパターン (Min value) を抽出
+    best_patterns = [r for r in successful_runs if r['final_value'] == min_value]
+    
+    # 3. セカンドベストパターン (Second Min value) を抽出
+    second_min_value = None
+    for r in successful_runs:
+        if r['final_value'] > min_value:
+            second_min_value = r['final_value']
+            break
+            
+    second_best_patterns = []
+    if second_min_value is not None:
+        second_best_patterns = [r for r in successful_runs if r['final_value'] == second_min_value]
+
+    # 4. レポートコンテンツの構築
+    filepath = os.path.join(output_dir, "_permutation_summary.txt")
+    objective_label = objective_mode.title()
+    
+    content = [
+        "==========================================================================",
+        f"        Permutation Analysis Summary (Objective: {objective_label})        ",
+        "==========================================================================",
+        f"\nTotal permutations run: {len(results_list)}",
+        f"Successful runs: {len(successful_runs)}",
+        f"Metric minimized: {objective_mode.upper()}",
+        f"Note: If Optimization Mode is 'waste', this value represents the waste minimization."
+    ]
+
+    # --- Best Pattern(s) ---
+    content.append("\n" + "="*80)
+    content.append(f"🥇 BEST PATTERN(S): {objective_label} = {min_value}")
+    content.append("="*80)
+    
+    for i, pattern in enumerate(best_patterns):
+        content.append(f"\n--- Rank 1 Pattern {i+1} (Run: {pattern['run_name']}) ---")
+        content.append(f"  Final Objective Value ({objective_label}): {pattern['final_value']}")
+        content.append(f"  Total Operations: {pattern['total_operations']}")
+        content.append(f"  Total Reagent Units: {pattern['total_reagents']}")
+        content.append(f"  Elapsed Time: {pattern['elapsed_time']:.2f} sec")
+        content.append("  Target Permutation Structure:")
+        for target in pattern['targets']:
+            ratios_str = ', '.join(map(str, target['ratios']))
+            factors_str = ', '.join(map(str, target['factors']))
+            content.append(f"    - {target['name']}: Ratios=[{ratios_str}], Factors=[{factors_str}]")
+
+    # --- Second Best Pattern(s) ---
+    if second_min_value is not None:
+        content.append("\n" + "="*80)
+        content.append(f"🥈 SECOND BEST PATTERN(S): {objective_label} = {second_min_value}")
+        content.append("="*80)
+        
+        for i, pattern in enumerate(second_best_patterns):
+            content.append(f"\n--- Rank 2 Pattern {i+1} (Run: {pattern['run_name']}) ---")
+            content.append(f"  Final Objective Value ({objective_label}): {pattern['final_value']}")
+            content.append(f"  Total Operations: {pattern['total_operations']}")
+            content.append(f"  Total Reagent Units: {pattern['total_reagents']}")
+            content.append(f"  Elapsed Time: {pattern['elapsed_time']:.2f} sec")
+            content.append("  Target Permutation Structure:")
+            for target in pattern['targets']:
+                ratios_str = ', '.join(map(str, target['ratios']))
+                factors_str = ', '.join(map(str, target['factors']))
+                content.append(f"    - {target['name']}: Ratios=[{ratios_str}], Factors=[{factors_str}]")
+    else:
+        content.append("\nNo second best permutation found.")
+
+    # 5. ファイル保存
+    try:
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write('\n'.join(content))
+        print(f"\nPermutation summary saved to: {filepath}")
+    except IOError as e:
+        print(f"\nError saving permutation summary file: {e}")

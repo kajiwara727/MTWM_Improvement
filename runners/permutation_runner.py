@@ -1,17 +1,16 @@
-# runners/permutation_runner.py
+# runners/permutation_runner.py (修正版)
 import os
 import itertools
 import copy
 from .base_runner import BaseRunner
 from core.dfmm import find_factors_for_sum, generate_unique_permutations
 from utils.helpers import generate_config_hash
+from reporting.summary import save_permutation_summary # <--- 追加
 
 class PermutationRunner(BaseRunner):
     """
     'auto_permutations' モードの実行を担当するクラス。
-    このモードでは、各ターゲットの混合階層（factors）の全てのユニークな順列の
-    組み合わせをテストし、どの階層構造が最も良い結果（例：最小廃棄物）を
-    生み出すかを網羅的に探索します。
+    ...
     """
     def run(self):
         # 設定からベースとなるターゲット情報を取得
@@ -42,6 +41,8 @@ class PermutationRunner(BaseRunner):
         total_runs = len(all_config_combinations)
         print(f"Found {total_runs} unique factor permutation combinations to test.")
 
+        all_run_results = [] # <--- 結果を収集するためのリスト
+
         # 生成された各組み合わせについて、最適化を実行
         for i, combo in enumerate(all_config_combinations):
             print(f"\n{'='*20} Running Combination {i+1}/{total_runs} {'='*20}")
@@ -60,4 +61,21 @@ class PermutationRunner(BaseRunner):
             output_dir = os.path.join(base_output_dir, run_name)
 
             # 共通の単一最適化実行メソッドを呼び出し
-            self._run_single_optimization(temp_config, output_dir, run_name)
+            final_value, exec_time, total_ops, total_reagents = self._run_single_optimization(temp_config, output_dir, run_name)
+
+            # --- 結果を収集 ---
+            # NOTE: final_valueは最小化された目的値（waste, ops, または reagents）です
+            all_run_results.append({
+                'run_name': run_name, 
+                'targets': copy.deepcopy(temp_config), # 使用した正確な順列を保存
+                'final_value': final_value, 
+                'elapsed_time': exec_time,
+                'total_operations': total_ops, 
+                'total_reagents': total_reagents,
+                'objective_mode': self.config.OPTIMIZATION_MODE
+            })
+            # --- 収集終わり ---
+        
+        # --- 最終的な順列サマリーの保存 ---
+        save_permutation_summary(all_run_results, base_output_dir, self.config.OPTIMIZATION_MODE)
+        # --- 最終的な順列サマリーの保存終わり ---

@@ -1,12 +1,12 @@
 # 実行名を定義します。出力ディレクトリの名前の一部として使用されます。
-RUN_NAME = "random-waste"
+RUN_NAME = "auto_permutations-waste"
 # 混合ツリーの階層構造（factors）を決定するモードを選択します。
 # 'manual': TARGETS_FOR_MANUAL_MODE で定義された factors を手動で設定します。
 # 'auto': 各ターゲットの ratios の合計値から factors を自動計算します。
 # 'auto_permutations': 'auto' で計算された factors の全順列を試し、最適な階層構造を探します。
 # 'random': RANDOM_SETTINGS に基づいてランダムなシナリオを複数回実行します。
 #  FACTOR_EXECUTION_MODEの選択肢に 'file_load' を追加
-FACTOR_EXECUTION_MODE = "file_load"
+FACTOR_EXECUTION_MODE = "auto_permutations"
 # 最適化の目的を設定します。
 # "waste": 廃棄物量の最小化を目指します。
 # "operations": 混合操作の総回数の最小化を目指します。
@@ -81,8 +81,8 @@ TARGETS_FOR_AUTO_MODE = [
 # 'factors'（混合階層）を各ターゲットに対して手動で指定する必要があります。
 # 'ratios'の合計値と'factors'の積は一致している必要があります。
 TARGETS_FOR_MANUAL_MODE = [
-    # {'name': 'Target 1', 'ratios': [45, 26, 64], 'factors': [3, 3, 3, 5]},
-    # {'name': 'Target 2', 'ratios': [80, 26, 29], 'factors': [3, 3, 3, 5]},
+    # {'name': 'Target 1', 'ratios': [1,8,9], 'factors': [3, 3, 3, 5]},
+    # {'name': 'Target 2', 'ratios': [2,1,15], 'factors': [3, 3, 3, 5]},
     # {'name': 'Target 1', 'ratios': [10, 55, 25], 'factors': [3, 5, 3, 2]},
     # {'name': 'Target 1', 'ratios': [6, 33, 15], 'factors': [3, 3, 3, 2]},
     # {'name': 'Target 1', 'ratios': [2, 3, 7], 'factors': [3, 2, 2]},
