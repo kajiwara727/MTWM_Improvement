@@ -1,12 +1,12 @@
 # 実行名を定義します。出力ディレクトリの名前の一部として使用されます。
-RUN_NAME = "random-waste-check"
+RUN_NAME = "random-waste"
 # 混合ツリーの階層構造（factors）を決定するモードを選択します。
 # 'manual': TARGETS_FOR_MANUAL_MODE で定義された factors を手動で設定します。
 # 'auto': 各ターゲットの ratios の合計値から factors を自動計算します。
 # 'auto_permutations': 'auto' で計算された factors の全順列を試し、最適な階層構造を探します。
 # 'random': RANDOM_SETTINGS に基づいてランダムなシナリオを複数回実行します。
 #  FACTOR_EXECUTION_MODEの選択肢に 'file_load' を追加
-FACTOR_EXECUTION_MODE = "random"
+FACTOR_EXECUTION_MODE = "file_load"
 # 最適化の目的を設定します。
 # "waste": 廃棄物量の最小化を目指します。
 # "operations": 混合操作の総回数の最小化を目指します。
@@ -33,7 +33,7 @@ MAX_MIXER_SIZE = 5
 RANDOM_SETTINGS = {
     't_reagents': 3,       # ランダムシナリオにおける試薬の種類数。
     'n_targets': 3,        # ランダムシナリオにおけるターゲット（目標混合液）の数。
-    'k_runs': 10,           # 生成・実行するランダムシナリオの総数。
+    'k_runs': 30,           # 生成・実行するランダムシナリオの総数。
 
     # --- 混合比和の生成ルール（以下の優先順位で適用されます） ---
     # 優先度1: 固定シーケンス（n_targetsと要素数を一致させる必要あり）

@@ -1,0 +1,1352 @@
+[
+    {
+        "run_name": "run_1",
+        "targets": [
+            {
+                "name": "RandomTarget_1_1",
+                "ratios": [
+                    7,
+                    4,
+                    7
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_1_2",
+                "ratios": [
+                    70,
+                    15,
+                    5
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_1_3",
+                "ratios": [
+                    6,
+                    10,
+                    2
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_2",
+        "targets": [
+            {
+                "name": "RandomTarget_2_1",
+                "ratios": [
+                    6,
+                    2,
+                    10
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_2_2",
+                "ratios": [
+                    10,
+                    65,
+                    15
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_2_3",
+                "ratios": [
+                    10,
+                    2,
+                    6
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_3",
+        "targets": [
+            {
+                "name": "RandomTarget_3_1",
+                "ratios": [
+                    10,
+                    5,
+                    3
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_3_2",
+                "ratios": [
+                    10,
+                    5,
+                    75
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_3_3",
+                "ratios": [
+                    8,
+                    6,
+                    4
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_4",
+        "targets": [
+            {
+                "name": "RandomTarget_4_1",
+                "ratios": [
+                    13,
+                    2,
+                    3
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_4_2",
+                "ratios": [
+                    30,
+                    5,
+                    55
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_4_3",
+                "ratios": [
+                    8,
+                    5,
+                    5
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_5",
+        "targets": [
+            {
+                "name": "RandomTarget_5_1",
+                "ratios": [
+                    1,
+                    1,
+                    16
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_5_2",
+                "ratios": [
+                    20,
+                    50,
+                    20
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_5_3",
+                "ratios": [
+                    5,
+                    8,
+                    5
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_6",
+        "targets": [
+            {
+                "name": "RandomTarget_6_1",
+                "ratios": [
+                    1,
+                    1,
+                    16
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_6_2",
+                "ratios": [
+                    5,
+                    40,
+                    45
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_6_3",
+                "ratios": [
+                    3,
+                    1,
+                    14
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_7",
+        "targets": [
+            {
+                "name": "RandomTarget_7_1",
+                "ratios": [
+                    5,
+                    5,
+                    8
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_7_2",
+                "ratios": [
+                    35,
+                    35,
+                    20
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_7_3",
+                "ratios": [
+                    3,
+                    3,
+                    12
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_8",
+        "targets": [
+            {
+                "name": "RandomTarget_8_1",
+                "ratios": [
+                    7,
+                    1,
+                    10
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_8_2",
+                "ratios": [
+                    10,
+                    40,
+                    40
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_8_3",
+                "ratios": [
+                    1,
+                    11,
+                    6
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_9",
+        "targets": [
+            {
+                "name": "RandomTarget_9_1",
+                "ratios": [
+                    10,
+                    5,
+                    3
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_9_2",
+                "ratios": [
+                    5,
+                    60,
+                    25
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_9_3",
+                "ratios": [
+                    4,
+                    4,
+                    10
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_10",
+        "targets": [
+            {
+                "name": "RandomTarget_10_1",
+                "ratios": [
+                    8,
+                    4,
+                    6
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_10_2",
+                "ratios": [
+                    15,
+                    15,
+                    60
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_10_3",
+                "ratios": [
+                    6,
+                    9,
+                    3
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_11",
+        "targets": [
+            {
+                "name": "RandomTarget_11_1",
+                "ratios": [
+                    2,
+                    10,
+                    6
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_11_2",
+                "ratios": [
+                    50,
+                    10,
+                    30
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_11_3",
+                "ratios": [
+                    8,
+                    9,
+                    1
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_12",
+        "targets": [
+            {
+                "name": "RandomTarget_12_1",
+                "ratios": [
+                    3,
+                    14,
+                    1
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_12_2",
+                "ratios": [
+                    30,
+                    15,
+                    45
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_12_3",
+                "ratios": [
+                    11,
+                    2,
+                    5
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_13",
+        "targets": [
+            {
+                "name": "RandomTarget_13_1",
+                "ratios": [
+                    5,
+                    3,
+                    10
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_13_2",
+                "ratios": [
+                    25,
+                    55,
+                    10
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_13_3",
+                "ratios": [
+                    3,
+                    13,
+                    2
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_14",
+        "targets": [
+            {
+                "name": "RandomTarget_14_1",
+                "ratios": [
+                    4,
+                    6,
+                    8
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_14_2",
+                "ratios": [
+                    60,
+                    5,
+                    25
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_14_3",
+                "ratios": [
+                    6,
+                    5,
+                    7
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_15",
+        "targets": [
+            {
+                "name": "RandomTarget_15_1",
+                "ratios": [
+                    9,
+                    3,
+                    6
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_15_2",
+                "ratios": [
+                    70,
+                    15,
+                    5
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_15_3",
+                "ratios": [
+                    9,
+                    4,
+                    5
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_16",
+        "targets": [
+            {
+                "name": "RandomTarget_16_1",
+                "ratios": [
+                    3,
+                    11,
+                    4
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_16_2",
+                "ratios": [
+                    15,
+                    55,
+                    20
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_16_3",
+                "ratios": [
+                    4,
+                    6,
+                    8
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_17",
+        "targets": [
+            {
+                "name": "RandomTarget_17_1",
+                "ratios": [
+                    1,
+                    3,
+                    14
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_17_2",
+                "ratios": [
+                    20,
+                    60,
+                    10
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_17_3",
+                "ratios": [
+                    4,
+                    1,
+                    13
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_18",
+        "targets": [
+            {
+                "name": "RandomTarget_18_1",
+                "ratios": [
+                    2,
+                    11,
+                    5
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_18_2",
+                "ratios": [
+                    10,
+                    20,
+                    60
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_18_3",
+                "ratios": [
+                    1,
+                    1,
+                    16
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_19",
+        "targets": [
+            {
+                "name": "RandomTarget_19_1",
+                "ratios": [
+                    8,
+                    5,
+                    5
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_19_2",
+                "ratios": [
+                    60,
+                    20,
+                    10
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_19_3",
+                "ratios": [
+                    9,
+                    3,
+                    6
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_20",
+        "targets": [
+            {
+                "name": "RandomTarget_20_1",
+                "ratios": [
+                    1,
+                    11,
+                    6
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_20_2",
+                "ratios": [
+                    75,
+                    5,
+                    10
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_20_3",
+                "ratios": [
+                    7,
+                    4,
+                    7
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_21",
+        "targets": [
+            {
+                "name": "RandomTarget_21_1",
+                "ratios": [
+                    8,
+                    7,
+                    3
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_21_2",
+                "ratios": [
+                    45,
+                    10,
+                    35
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_21_3",
+                "ratios": [
+                    3,
+                    13,
+                    2
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_22",
+        "targets": [
+            {
+                "name": "RandomTarget_22_1",
+                "ratios": [
+                    7,
+                    6,
+                    5
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_22_2",
+                "ratios": [
+                    60,
+                    15,
+                    15
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_22_3",
+                "ratios": [
+                    10,
+                    3,
+                    5
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_23",
+        "targets": [
+            {
+                "name": "RandomTarget_23_1",
+                "ratios": [
+                    4,
+                    7,
+                    7
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_23_2",
+                "ratios": [
+                    60,
+                    10,
+                    20
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_23_3",
+                "ratios": [
+                    3,
+                    9,
+                    6
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_24",
+        "targets": [
+            {
+                "name": "RandomTarget_24_1",
+                "ratios": [
+                    4,
+                    8,
+                    6
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_24_2",
+                "ratios": [
+                    65,
+                    15,
+                    10
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_24_3",
+                "ratios": [
+                    11,
+                    5,
+                    2
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_25",
+        "targets": [
+            {
+                "name": "RandomTarget_25_1",
+                "ratios": [
+                    3,
+                    10,
+                    5
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_25_2",
+                "ratios": [
+                    55,
+                    5,
+                    30
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_25_3",
+                "ratios": [
+                    1,
+                    3,
+                    14
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_26",
+        "targets": [
+            {
+                "name": "RandomTarget_26_1",
+                "ratios": [
+                    10,
+                    3,
+                    5
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_26_2",
+                "ratios": [
+                    65,
+                    5,
+                    20
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_26_3",
+                "ratios": [
+                    2,
+                    8,
+                    8
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_27",
+        "targets": [
+            {
+                "name": "RandomTarget_27_1",
+                "ratios": [
+                    2,
+                    3,
+                    13
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_27_2",
+                "ratios": [
+                    35,
+                    15,
+                    40
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_27_3",
+                "ratios": [
+                    2,
+                    13,
+                    3
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_28",
+        "targets": [
+            {
+                "name": "RandomTarget_28_1",
+                "ratios": [
+                    4,
+                    12,
+                    2
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_28_2",
+                "ratios": [
+                    35,
+                    50,
+                    5
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_28_3",
+                "ratios": [
+                    11,
+                    5,
+                    2
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_29",
+        "targets": [
+            {
+                "name": "RandomTarget_29_1",
+                "ratios": [
+                    13,
+                    4,
+                    1
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_29_2",
+                "ratios": [
+                    5,
+                    55,
+                    30
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_29_3",
+                "ratios": [
+                    2,
+                    6,
+                    10
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    },
+    {
+        "run_name": "run_30",
+        "targets": [
+            {
+                "name": "RandomTarget_30_1",
+                "ratios": [
+                    3,
+                    13,
+                    2
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_30_2",
+                "ratios": [
+                    10,
+                    45,
+                    35
+                ],
+                "factors": [
+                    5,
+                    3,
+                    3,
+                    2
+                ]
+            },
+            {
+                "name": "RandomTarget_30_3",
+                "ratios": [
+                    3,
+                    4,
+                    11
+                ],
+                "factors": [
+                    3,
+                    3,
+                    2
+                ]
+            }
+        ]
+    }
+]
