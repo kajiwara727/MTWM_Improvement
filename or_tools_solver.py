@@ -128,20 +128,11 @@ class OrToolsSolver:
         self.peer_vars = [] # <--- 追加
         self._set_variables_and_constraints()
 
-    def solve(self, checkpoint_handler):
+    def solve(self):
         """最適化問題を解くメインのメソッド（Or-Tools CP-SAT版）。"""
         
-        last_best_value = None
-        last_analysis = None
-        
-        if checkpoint_handler:
-            last_best_value, last_analysis = checkpoint_handler.load_checkpoint()
-
         start_time = time.time()
         
-        if last_best_value is not None:
-             self.model.Add(self.objective_variable < int(last_best_value))
-
         print(f"\n--- Solving the optimization problem (mode: {self.objective_mode.upper()}) with Or-Tools CP-SAT ---")
 
         status = self.solver.Solve(self.model)
@@ -161,18 +152,10 @@ class OrToolsSolver:
             reporter = SolutionReporter(self.problem, best_model, self.objective_mode)
             best_analysis = reporter.analyze_solution()
             
-            if checkpoint_handler:
-                 checkpoint_handler.save_checkpoint(best_analysis, int(best_value), elapsed_time)
         else:
             # (...既存のエラーハンドリング...)
             print(f"Or-Tools Solver status: {self.solver.StatusName(status)}")
-            if last_best_value is not None and status == cp_model.INFEASIBLE:
-                 print("Did not find a better solution than the checkpoint. Reporting checkpoint solution.")
-                 best_value = last_best_value
-                 best_analysis = last_analysis
-                 reporter = SolutionReporter(self.problem, best_model, self.objective_mode)
-                 reporter.report_from_checkpoint(last_analysis, last_best_value, "")
-            elif status == cp_model.INFEASIBLE:
+            if status == cp_model.INFEASIBLE:
                 print("No feasible solution found.")
 
 

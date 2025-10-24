@@ -42,40 +42,6 @@ class SolutionReporter:
             visualizer = SolutionVisualizer(self.problem, self.model)
             visualizer.visualize_solution(output_dir)
 
-    def report_from_checkpoint(self, analysis, value, output_dir):
-        """
-        チェックポイントから読み込んだ既存の解データを基にレポートを生成します。
-        モデルを再構築して可視化も試みます。
-        """
-        # ( ... 既存の report_from_checkpoint ロジック ... )
-        # (注: Z3Solver/OrToolsSolverの互換性により、このメソッドは
-        #  Rノードの可視化を試みますが、visualizer.pyが未対応のため
-        #  グラフには表示されません。)
-        
-        from z3_solver import Z3Solver # 循環参照を避けるため、メソッド内でインポート
-
-        self._print_console_summary(analysis, value, 0)
-        self._save_summary_to_file(analysis, value, 0, output_dir)
-
-        print("\nAttempting to generate visualization from checkpoint data...")
-        # ( ... 既存のロジック ... )
-        
-        # Or-Toolsがアクティブな場合、Z3でのモデル再構築は失敗する可能性がある
-        try:
-            temp_solver = Z3Solver(self.problem, objective_mode=self.objective_mode)
-            temp_solver.opt.add(temp_solver.objective_variable == value)
-
-            if temp_solver.check() == z3.sat:
-                checkpoint_model = temp_solver.get_model()
-                visualizer = SolutionVisualizer(self.problem, checkpoint_model)
-                visualizer.visualize_solution(output_dir)
-                print(f"   Visualization successfully generated from checkpoint.")
-            else:
-                print("\nVisualization could not be generated (model recreation failed, this is expected if using OrTools).")
-        except Exception as e:
-            print(f"\nVisualization could not be generated (Error: {e}).")
-
-
     def analyze_solution(self):
         """
         【変更】モデルを解析し、DFMMノードとピアRノードの両方の情報を
@@ -181,8 +147,8 @@ class SolutionReporter:
         return ' + '.join(desc)
 
     def _print_console_summary(self, results, min_value, elapsed_time):
-        # (変更不要)
-        time_str = f"(in {elapsed_time:.2f} sec)" if elapsed_time > 0 else "(from checkpoint)"
+        # (変更不要 -> チェックポイントロジックを削除)
+        time_str = f"(in {elapsed_time:.2f} sec)"
         print(f"\n<Improvement>Optimal Solution Found {time_str}")
         if self.objective_mode == "waste":
             objective_str = "Minimum Total Waste"
@@ -213,7 +179,7 @@ class SolutionReporter:
             print(f"\nError saving results to file: {e}")
 
     def _build_summary_file_content(self, results, min_value, elapsed_time, dir_name):
-        """【変更】Rノードの表示に対応。"""
+        """【変更】Rノードの表示に対応。チェックポイントロジックを削除。"""
         if self.objective_mode == "waste":
             objective_str = "Minimum Total Waste"
         elif self.objective_mode == "operations":
@@ -222,7 +188,7 @@ class SolutionReporter:
             objective_str = "Minimum Total Reagents"
         content = [
             "="*40, f"Optimization Results for: {os.path.basename(dir_name)}", "="*40,
-            f"\nSolved in {elapsed_time:.2f} seconds." if elapsed_time > 0 else "\nLoaded from checkpoint.",
+            f"\nSolved in {elapsed_time:.2f} seconds.",
             "\n--- Target Configuration ---"
         ]
         # ( ... 既存の設定記録ロジック ... )

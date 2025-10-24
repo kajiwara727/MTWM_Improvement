@@ -12,8 +12,6 @@ FACTOR_EXECUTION_MODE = "random"
 # "operations": 混合操作の総回数の最小化を目指します。
 # "reagents": 総試薬使用量の最小化を目指します。
 OPTIMIZATION_MODE = "waste"
-# チェックポイント機能を有効にするかどうかを設定します。Trueにすると、中断された計算を再開できます。
-ENABLE_CHECKPOINTING = False
 
 # ファイルから Target Configuration を読み込む場合に、そのファイル名を設定します。
 # ランダム実行で生成したファイル名 (例: "manual-check_eb8386bc_1/random_configs.json") を設定すると、そこから最初のパターンを読み込みます。
@@ -32,7 +30,7 @@ MAX_MIXER_SIZE = 5
 # FACTOR_EXECUTION_MODE が 'random' の場合にのみ使用されます。
 RANDOM_SETTINGS = {
     't_reagents': 3,       # ランダムシナリオにおける試薬の種類数。
-    'n_targets': 5,        # ランダムシナリオにおけるターゲット（目標混合液）の数。
+    'n_targets': 3,        # ランダムシナリオにおけるターゲット（目標混合液）の数。
     'k_runs': 100,           # 生成・実行するランダムシナリオの総数。
 
     # --- 混合比和の生成ルール（以下の優先順位で適用されます） ---

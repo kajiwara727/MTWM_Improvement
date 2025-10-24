@@ -6,11 +6,9 @@ from abc import ABC, abstractmethod
 # これらは、各ランナーが共通して使用するコアコンポーネントです。
 from core.problem import MTWMProblem
 from core.dfmm import build_dfmm_forest, calculate_p_values_from_structure
-# from z3_solver import Z3Solver
-from or_tools_solver import OrToolsSolver # <--- この行を追加
+from or_tools_solver import OrToolsSolver # <--- ソルバーを OrTools に一本化
 from reporting.analyzer import PreRunAnalyzer
 from reporting.reporter import SolutionReporter
-from utils.checkpoint import CheckpointHandler
 from utils.helpers import generate_config_hash
 
 class BaseRunner(ABC):
@@ -56,7 +54,7 @@ class BaseRunner(ABC):
         2. 混合ツリーとP値の計算
         3. 問題オブジェクトの構築
         4. 事前分析レポートの生成
-        5. Z3ソルバーの実行
+        5. Or-Toolsソルバーの実行
         6. 結果レポートの生成
         
         【変更】戻り値に total_waste を追加
@@ -80,17 +78,11 @@ class BaseRunner(ABC):
         analyzer = PreRunAnalyzer(problem, tree_structures)
         analyzer.generate_report(output_dir)
 
-        # 4. Z3ソルバーを初期化
-        # solver = Z3Solver(problem, objective_mode=self.config.OPTIMIZATION_MODE)
-        solver = OrToolsSolver(problem, objective_mode=self.config.OPTIMIZATION_MODE) # <--- この行に変更
-        checkpoint_handler = None
-        # チェックポイント機能が有効な場合、ハンドラを初期化
-        if self.config.ENABLE_CHECKPOINTING and self.config.MODE != 'auto_permutations':
-            config_hash = generate_config_hash(targets_config_for_run, self.config.OPTIMIZATION_MODE, run_name_for_report)
-            checkpoint_handler = CheckpointHandler(targets_config_for_run, self.config.OPTIMIZATION_MODE, run_name_for_report, config_hash)
+        # 4. Or-Toolsソルバーを初期化
+        solver = OrToolsSolver(problem, objective_mode=self.config.OPTIMIZATION_MODE) # <--- OrToolsSolver のみを使用
 
-        # 5. 最適化を実行
-        best_model, final_value, last_analysis, elapsed_time = solver.solve(checkpoint_handler)
+        # 5. 最適化を実行 (チェックポイントハンドラを削除)
+        best_model, final_value, last_analysis, elapsed_time = solver.solve()
         reporter = SolutionReporter(problem, best_model, objective_mode=self.config.OPTIMIZATION_MODE)
 
         # --- 変更: ops, reagents, total_waste を初期化 ---
@@ -99,7 +91,7 @@ class BaseRunner(ABC):
         total_waste = None
         # --- 変更ここまで ---
 
-        # 6. 結果に応じてレポートを生成
+        # 6. 結果に応じてレポートを生成 (チェックポイントからの読み込みロジックを削除)
         if best_model:
             # 新しい解が見つかった場合
             reporter.generate_full_report(final_value, elapsed_time, output_dir)
@@ -107,13 +99,6 @@ class BaseRunner(ABC):
             ops = analysis_results.get('total_operations')
             reagents = analysis_results.get('total_reagent_units')
             total_waste = analysis_results.get('total_waste') # <-- 取得
-        elif last_analysis and checkpoint_handler:
-            # 新しい解は見つからなかったが、チェックポイントの解がある場合
-            ops = last_analysis.get('total_operations')
-            reagents = last_analysis.get('total_reagent_units')
-            total_waste = last_analysis.get('total_waste') # <-- 取得
-            elapsed_time = last_analysis.get('elapsed_time', 0) if last_analysis else 0
-            reporter.report_from_checkpoint(last_analysis, final_value, output_dir)
         else:
             # 解が見つからなかった場合
             print("\n--- No solution found for this configuration ---")
