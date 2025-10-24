@@ -35,13 +35,10 @@ def _calculate_and_save_summary(results_list, output_dir, filename_prefix, title
             
             content.append(f"  -> {objective_label}: {result['final_value']}")
             
-            # その他の結果はそのまま追加
+            # その他の結果は None の可能性を考慮して 'N/A' にフォールバック
             content.append(f"  -> Total Operations: {result.get('total_operations', 'N/A')}")
             content.append(f"  -> Total Reagent Units: {result.get('total_reagents', 'N/A')}")
-            # Total waste は objective_mode が waste でない場合も出力
-            total_waste = result.get('total_waste', 'N/A')
-            if total_waste != 'N/A':
-                 content.append(f"  -> Total Waste Generated: {total_waste}")
+            content.append(f"  -> Total Waste Generated: {result.get('total_waste', 'N/A')}")
         else:
             # 解が見つからなかった場合
             content.append("  -> No solution was found for this configuration.")
@@ -60,13 +57,16 @@ def _calculate_and_save_summary(results_list, output_dir, filename_prefix, title
     mode_label = objective_mode.title()
 
     if num_successful_runs > 0:
-        # final_valueが何を表しているかに応じて、その平均も計算
-        total_final_value = sum(r['final_value'] for r in successful_runs)
         
-        # NOTE: file_load_runner.pyの修正により、total_wasteはwasteモードでない場合もNoneとして格納される
-        total_waste = sum(r.get('total_waste', 0) for r in successful_runs if r.get('total_waste') is not None)
-        total_operations = sum(r.get('total_operations', 0) for r in successful_runs)
-        total_reagents = sum(r.get('total_reagents', 0) for r in successful_runs)
+        # --- 変更: None を 0 として扱うヘルパー関数 ---
+        def sum_safe(key):
+            return sum(r.get(key, 0) for r in successful_runs if r.get(key) is not None and isinstance(r.get(key), (int, float)))
+
+        total_final_value = sum_safe('final_value')
+        total_waste = sum_safe('total_waste')
+        total_operations = sum_safe('total_operations')
+        total_reagents = sum_safe('total_reagents')
+        # --- 変更ここまで ---
 
         avg_final_value = total_final_value / num_successful_runs
         avg_waste = total_waste / num_successful_runs
@@ -105,16 +105,15 @@ def _calculate_and_save_summary(results_list, output_dir, filename_prefix, title
 
 def save_random_run_summary(results_list, output_dir):
     """
-    'random' モードで実行された全シミュレーションの結果概要を、
+    【変更】'random' モードで実行された全シミュレーションの結果概要を、
     単一のサマリーファイルに保存します。
     """
-    # random_runnerは常に waste mode とは限らないため、objective_modeをresults_listに追加する
-    updated_results = []
-    for r in results_list:
-        if 'objective_mode' not in r: # random_runnerにはobjective_modeがないため、ここでは仮に'Waste'とする
-            r['objective_mode'] = 'Waste' 
-        updated_results.append(r)
-    _calculate_and_save_summary(updated_results, output_dir, "random_runs", "Random", "Waste")
+    # 目的モードを最初の結果から取得 (全ランで共通のはず)
+    objective_mode = 'waste' # デフォルト
+    if results_list and 'objective_mode' in results_list[0]:
+        objective_mode = results_list[0]['objective_mode']
+    
+    _calculate_and_save_summary(results_list, output_dir, "random_runs", "Random", objective_mode)
     
     
 
@@ -178,8 +177,11 @@ def save_permutation_summary(results_list, output_dir, objective_mode):
     for i, pattern in enumerate(best_patterns):
         content.append(f"\n--- Rank 1 Pattern {i+1} (Run: {pattern['run_name']}) ---")
         content.append(f"  Final Objective Value ({objective_label}): {pattern['final_value']}")
-        content.append(f"  Total Operations: {pattern['total_operations']}")
-        content.append(f"  Total Reagent Units: {pattern['total_reagents']}")
+        # --- 変更: None を 'N/A' として表示 ---
+        content.append(f"  Total Operations: {pattern.get('total_operations', 'N/A')}")
+        content.append(f"  Total Reagent Units: {pattern.get('total_reagents', 'N/A')}")
+        content.append(f"  Total Waste: {pattern.get('total_waste', 'N/A')}")
+        # --- 変更ここまで ---
         content.append(f"  Elapsed Time: {pattern['elapsed_time']:.2f} sec")
         content.append("  Target Permutation Structure:")
         for target in pattern['targets']:
@@ -196,8 +198,11 @@ def save_permutation_summary(results_list, output_dir, objective_mode):
         for i, pattern in enumerate(second_best_patterns):
             content.append(f"\n--- Rank 2 Pattern {i+1} (Run: {pattern['run_name']}) ---")
             content.append(f"  Final Objective Value ({objective_label}): {pattern['final_value']}")
-            content.append(f"  Total Operations: {pattern['total_operations']}")
-            content.append(f"  Total Reagent Units: {pattern['total_reagents']}")
+            # --- 変更: None を 'N/A' として表示 ---
+            content.append(f"  Total Operations: {pattern.get('total_operations', 'N/A')}")
+            content.append(f"  Total Reagent Units: {pattern.get('total_reagents', 'N/A')}")
+            content.append(f"  Total Waste: {pattern.get('total_waste', 'N/A')}")
+            # --- 変更ここまで ---
             content.append(f"  Elapsed Time: {pattern['elapsed_time']:.2f} sec")
             content.append("  Target Permutation Structure:")
             for target in pattern['targets']:

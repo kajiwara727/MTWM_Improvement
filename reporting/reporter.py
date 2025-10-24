@@ -16,7 +16,7 @@ class SolutionReporter:
 
         Args:
             problem (MTWMProblem): 最適化問題の定義オブジェクト。
-            model (z3.ModelRef): Z3ソルバーが見つけた解のモデル。
+            model (z3.ModelRef or OrToolsModelAdapter): Z3/Or-Toolsの解のモデル。
             objective_mode (str): 最適化の目的 ('waste' or 'operations')。
         """
         self.problem = problem
@@ -28,65 +28,66 @@ class SolutionReporter:
         解の分析、コンソールへのサマリー出力、ファイルへの詳細レポート保存、
         そして結果の可視化という一連のレポート生成プロセスを実行します。
         """
-        analysis_results = self.analyze_solution() # <--- analyze_solution() の結果を取得
+        analysis_results = self.analyze_solution() 
 
-        # Or-ToolsのAnalyzeで発生する総廃棄物量の不整合を修正
-        # 目的が 'waste' の場合、分析結果の合計ではなく、最適化で得られた最小値を採用
         if self.objective_mode == 'waste' and analysis_results is not None:
              analysis_results['total_waste'] = int(min_value)
 
         self._print_console_summary(analysis_results, min_value, elapsed_time)
         
-        # --- FIX: ファイル保存と可視化のロジックを復元 ---
         self._save_summary_to_file(analysis_results, min_value, elapsed_time, output_dir)
         if self.model:
             # 可視化クラスを呼び出してグラフを生成
+            # (注: 可視化はRノードに対応していません)
             visualizer = SolutionVisualizer(self.problem, self.model)
             visualizer.visualize_solution(output_dir)
-        # --- 復元されたロジックここまで ---
 
     def report_from_checkpoint(self, analysis, value, output_dir):
         """
         チェックポイントから読み込んだ既存の解データを基にレポートを生成します。
         モデルを再構築して可視化も試みます。
-
-        Args:
-            analysis (dict): チェックポイントに保存されていた分析結果。
-            value (int): チェックポイントに保存されていた目的関数の値。
-            output_dir (str): レポートと画像を保存するディレクトリのパス。
         """
+        # ( ... 既存の report_from_checkpoint ロジック ... )
+        # (注: Z3Solver/OrToolsSolverの互換性により、このメソッドは
+        #  Rノードの可視化を試みますが、visualizer.pyが未対応のため
+        #  グラフには表示されません。)
+        
         from z3_solver import Z3Solver # 循環参照を避けるため、メソッド内でインポート
 
-        # テキストレポートは保存されたデータから生成
         self._print_console_summary(analysis, value, 0)
         self._save_summary_to_file(analysis, value, 0, output_dir)
 
         print("\nAttempting to generate visualization from checkpoint data...")
-        # 可視化のために、保存された値と等しいという制約を追加してモデルを再構築
-        temp_solver = Z3Solver(self.problem, objective_mode=self.objective_mode)
-        temp_solver.opt.add(temp_solver.objective_variable == value)
+        # ( ... 既存のロジック ... )
+        
+        # Or-Toolsがアクティブな場合、Z3でのモデル再構築は失敗する可能性がある
+        try:
+            temp_solver = Z3Solver(self.problem, objective_mode=self.objective_mode)
+            temp_solver.opt.add(temp_solver.objective_variable == value)
 
-        if temp_solver.check() == z3.sat:
-            # モデルが見つかれば可視化を実行
-            checkpoint_model = temp_solver.get_model()
-            visualizer = SolutionVisualizer(self.problem, checkpoint_model)
-            visualizer.visualize_solution(output_dir)
-            print(f"   Visualization successfully generated from checkpoint.")
-        else:
-            print("\nVisualization could not be generated because the model could not be recreated.")
+            if temp_solver.check() == z3.sat:
+                checkpoint_model = temp_solver.get_model()
+                visualizer = SolutionVisualizer(self.problem, checkpoint_model)
+                visualizer.visualize_solution(output_dir)
+                print(f"   Visualization successfully generated from checkpoint.")
+            else:
+                print("\nVisualization could not be generated (model recreation failed, this is expected if using OrTools).")
+        except Exception as e:
+            print(f"\nVisualization could not be generated (Error: {e}).")
+
 
     def analyze_solution(self):
         """
-        Z3のモデルを解析し、総操作回数、総試薬使用量、各ノードの混合詳細など、
-        レポートに必要な情報を抽出して辞書形式で返します。
+        【変更】モデルを解析し、DFMMノードとピアRノードの両方の情報を
+        抽出して辞書形式で返します。
         """
         if not self.model: return None
         results = {"total_operations": 0, "total_reagent_units": 0, "total_waste": 0, "reagent_usage": {}, "nodes_details": []}
-        # 全てのノードをイテレート
+        
+        # 1. DFMMノード (self.problem.forest) をイテレート
         for tree_idx, tree in enumerate(self.problem.forest):
             for level, nodes in tree.items():
                 for node_idx, node in enumerate(nodes):
-                    # このノードへの総入力が0より大きい場合、アクティブなノードと見なす
                     total_input = self.model.eval(z3.Sum(self._get_input_vars(node))).as_long()
                     if total_input == 0: continue
 
@@ -107,16 +108,50 @@ class SolutionReporter:
                         "ratio_composition": [self.model.eval(r).as_long() for r in node['ratio_vars']],
                         "mixing_str": self._generate_mixing_description(node, tree_idx)
                     })
+        
+        # 2. ピアRノード (self.problem.peer_nodes) をイテレート
+        for i, peer_node in enumerate(self.problem.peer_nodes):
+            total_input = self.model.eval(z3.Sum(list(peer_node['input_vars'].values()))).as_long()
+            if total_input == 0: continue
+            
+            results["total_operations"] += 1
+            # (試薬使用はなし)
+            if 'waste_var' in peer_node:
+                 results["total_waste"] += self.model.eval(peer_node['waste_var']).as_long()
+            
+            # 混合文字列を生成 (1:1 mix)
+            m_a, l_a, k_a = peer_node['source_a_id']
+            name_a = f"v_m{m_a}_l{l_a}_k{k_a}"
+            m_b, l_b, k_b = peer_node['source_b_id']
+            name_b = f"v_m{m_b}_l{l_b}_k{k_b}"
+            mixing_str = f"1 x {name_a} + 1 x {name_b}"
+            
+            # レベルは親の平均-0.5としてソートしやすくする
+            level_eff = (l_a + l_b) / 2.0 - 0.5 
+
+            results["nodes_details"].append({
+                "target_id": -1, # ピアノード用の特別なID
+                "level": level_eff, 
+                "name": peer_node['name'],
+                "total_input": total_input,
+                "ratio_composition": [self.model.eval(r).as_long() for r in peer_node['ratio_vars']],
+                "mixing_str": mixing_str
+            })
+
+        # レベル順にソートしてレポートの順序を整える
+        results["nodes_details"].sort(key=lambda x: (x['target_id'], x['level']))
+
         return results
 
     def _get_input_vars(self, node):
         """ノードへの全入力（試薬、内部共有、外部共有）の変数をリストで返すヘルパー関数。"""
+        # (DFMMノード用、変更不要)
         return (node.get('reagent_vars', []) +
                 list(node.get('intra_sharing_vars', {}).values()) +
                 list(node.get('inter_sharing_vars', {}).values()))
 
     def _generate_mixing_description(self, node, tree_idx):
-        """ノードの混合内容を説明する文字列（例: "5 x Reagent1 + 3 x v_m0_l2_k0"）を生成する。"""
+        """【変更】ノードの混合内容を説明する文字列を生成する。Rノードからの入力を考慮。"""
         desc = []
         # 試薬の投入
         for r_idx, r_var in enumerate(node.get('reagent_vars', [])):
@@ -126,15 +161,27 @@ class SolutionReporter:
         for key, w_var in node.get('intra_sharing_vars', {}).items():
             if (val := self.model.eval(w_var).as_long()) > 0:
                 desc.append(f"{val} x v_m{tree_idx}_{key.replace('from_', '')}")
-        # 異なるツリーからの共有
+        
+        # 異なるツリー または Rノードからの共有
         for key, w_var in node.get('inter_sharing_vars', {}).items():
             if (val := self.model.eval(w_var).as_long()) > 0:
-                m_src, lk_src = key.split('_l')
-                desc.append(f"{val} x v_{m_src.replace('from_m', 'm')}_l{lk_src}")
+                
+                if key.startswith('from_R_idx'):
+                    # 【新規】Rノードからの入力
+                    idx = int(key.replace('from_R_idx', ''))
+                    # problem オブジェクトからRノードの名前を取得
+                    peer_node_name = self.problem.peer_nodes[idx]['name']
+                    desc.append(f"{val} x {peer_node_name}")
+                
+                else:
+                    # 【既存】異なるツリーからの入力
+                    m_src, lk_src = key.split('_l')
+                    desc.append(f"{val} x v_{m_src.replace('from_m', 'm')}_l{lk_src}")
+                    
         return ' + '.join(desc)
 
     def _print_console_summary(self, results, min_value, elapsed_time):
-        """最適化結果のサマリーをコンソールに出力する。"""
+        # (変更不要)
         time_str = f"(in {elapsed_time:.2f} sec)" if elapsed_time > 0 else "(from checkpoint)"
         print(f"\n<Improvement>Optimal Solution Found {time_str}")
         if self.objective_mode == "waste":
@@ -155,7 +202,7 @@ class SolutionReporter:
         print("="*45)
 
     def _save_summary_to_file(self, results, min_value, elapsed_time, output_dir):
-        """詳細な結果レポートをテキストファイルに保存する。"""
+        # (変更不要)
         filepath = os.path.join(output_dir, 'summary.txt')
         try:
             with open(filepath, 'w', encoding='utf-8') as f:
@@ -166,7 +213,7 @@ class SolutionReporter:
             print(f"\nError saving results to file: {e}")
 
     def _build_summary_file_content(self, results, min_value, elapsed_time, dir_name):
-        """ファイルに書き込むための全コンテンツを文字列リストとして構築する。"""
+        """【変更】Rノードの表示に対応。"""
         if self.objective_mode == "waste":
             objective_str = "Minimum Total Waste"
         elif self.objective_mode == "operations":
@@ -178,10 +225,9 @@ class SolutionReporter:
             f"\nSolved in {elapsed_time:.2f} seconds." if elapsed_time > 0 else "\nLoaded from checkpoint.",
             "\n--- Target Configuration ---"
         ]
-        # ターゲット設定の記録
+        # ( ... 既存の設定記録ロジック ... )
         for i, target in enumerate(self.problem.targets_config):
             content.extend([f"Target {i+1}:", f"  Ratios: {' : '.join(map(str, target['ratios']))}", f"  Factors: {target['factors']}"])
-        # 最適化設定の記録
         content.extend([
             "\n--- Optimization Settings ---",
             f"Optimization Mode: {self.objective_mode.upper()}",
@@ -191,7 +237,8 @@ class SolutionReporter:
             "-"*28,
             f"\n{objective_str}: {min_value}"
         ])
-        # 結果サマリー
+        
+        # 結果サマリー (変更不要)
         if results:
             content.extend([
                 f"Total mixing operations: {results['total_operations']}",
@@ -202,14 +249,22 @@ class SolutionReporter:
             for t in sorted(results['reagent_usage'].keys()):
                 content.append(f"  Reagent {t+1}: {results['reagent_usage'][t]} unit(s)")
             content.append("\n\n--- Mixing Process Details ---")
+            
             # 混合プロセスの詳細
-            current_target = -1
+            current_target = -2 # -1 (ピア) と 0 (ターゲット1) を区別
+            
             for detail in results["nodes_details"]:
                 if detail["target_id"] != current_target:
                     current_target = detail["target_id"]
-                    content.append(f"\n[Target {current_target + 1} ({self.problem.targets_config[current_target]['name']})]")
+                    if current_target == -1:
+                        content.append(f"\n[Peer Mixing Nodes (1:1 Mix)]")
+                    else:
+                        content.append(f"\n[Target {current_target + 1} ({self.problem.targets_config[current_target]['name']})]")
+                
+                level_str = f"{detail['level']}" if isinstance(detail['level'], int) else f"{detail['level']:.1f}"
+                
                 content.extend([
-                    f" Level {detail['level']}:",
+                    f" Level {level_str}:",
                     f"   Node {detail['name']}: total_input = {detail['total_input']}",
                     f"     Ratio composition: {detail['ratio_composition']}",
                     f"     Mixing: {detail['mixing_str']}" if detail['mixing_str'] else "     (No mixing actions for this node)"

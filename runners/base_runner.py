@@ -58,6 +58,8 @@ class BaseRunner(ABC):
         4. 事前分析レポートの生成
         5. Z3ソルバーの実行
         6. 結果レポートの生成
+        
+        【変更】戻り値に total_waste を追加
         """
         print("\n--- Configuration for this run ---")
         print(f"Run Name: {run_name_for_report}")
@@ -91,25 +93,31 @@ class BaseRunner(ABC):
         best_model, final_value, last_analysis, elapsed_time = solver.solve(checkpoint_handler)
         reporter = SolutionReporter(problem, best_model, objective_mode=self.config.OPTIMIZATION_MODE)
 
-        ops = 'N/A'
-        reagents = 'N/A'
+        # --- 変更: ops, reagents, total_waste を初期化 ---
+        ops = None
+        reagents = None
+        total_waste = None
+        # --- 変更ここまで ---
 
         # 6. 結果に応じてレポートを生成
         if best_model:
             # 新しい解が見つかった場合
             reporter.generate_full_report(final_value, elapsed_time, output_dir)
             analysis_results = reporter.analyze_solution()
-            ops = analysis_results.get('total_operations', 'N/A')
-            reagents = analysis_results.get('total_reagent_units', 'N/A')
+            ops = analysis_results.get('total_operations')
+            reagents = analysis_results.get('total_reagent_units')
+            total_waste = analysis_results.get('total_waste') # <-- 取得
         elif last_analysis and checkpoint_handler:
             # 新しい解は見つからなかったが、チェックポイントの解がある場合
-            ops = last_analysis.get('total_operations', 'N/A')
-            reagents = last_analysis.get('total_reagent_units', 'N/A')
+            ops = last_analysis.get('total_operations')
+            reagents = last_analysis.get('total_reagent_units')
+            total_waste = last_analysis.get('total_waste') # <-- 取得
             elapsed_time = last_analysis.get('elapsed_time', 0) if last_analysis else 0
             reporter.report_from_checkpoint(last_analysis, final_value, output_dir)
         else:
             # 解が見つからなかった場合
             print("\n--- No solution found for this configuration ---")
+            # (ops, reagents, total_waste は None のまま)
 
         # 'random'モードのサマリー用に結果を返す
-        return final_value, elapsed_time, ops, reagents
+        return final_value, elapsed_time, ops, reagents, total_waste # <-- 変更

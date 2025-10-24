@@ -66,6 +66,8 @@ class PreRunAnalyzer:
     def _build_p_values_section(self):
         """セクション2: 計算された各ノードのP値の検証レポートを構築する。"""
         content = ["--- Section 2: Calculated P-values per Node ---"]
+        
+        # 1. DFMMノードのP値
         for m, p_tree in enumerate(self.problem.p_values):
             target_info = self.problem.targets_config[m]
             content.append(f"\n[Target: {target_info['name']}] (Ratios: {target_info['ratios']}, Factors: {target_info['factors']})")
@@ -77,10 +79,20 @@ class PreRunAnalyzer:
             for node_id, p_value in sorted_nodes:
                 level, k = node_id
                 content.append(f"  Node v_m{m}_l{level}_k{k}: P = {p_value}")
+        
+        # 2. ピアRノードのP値
+        if self.problem.peer_nodes:
+            content.append("\n[Peer Mixing Nodes (1:1 Mix)]")
+            for i, peer_node in enumerate(self.problem.peer_nodes):
+                content.append(f"  Node {peer_node['name']}: P = {peer_node['p_value']}")
+                
         return content
 
     def _build_sharing_potential_section(self):
-        """セクション3: 共有可能性があるノード間の接続レポートを構築する。"""
+        """
+        【修正】セクション3: 共有可能性があるノード間の接続レポートを構築する。
+        Rノード (m_src == 'R') のケースに対応。
+        """
         content = ["--- Section 3: Potential Sharing Connections (with P-values for validation) ---"]
         if not self.problem.potential_sources_map:
             content.append("\nNo potential sharing connections were found.")
@@ -98,7 +110,28 @@ class PreRunAnalyzer:
                 content.append(f"\nNode {dest_name} (P={p_dst}) can potentially receive from:")
                 # 供給元とそのP値をリストアップ
                 for m_src, l_src, k_src in sources:
-                    p_src = self.problem.p_values[m_src].get((l_src, k_src), 'N/A')
-                    src_name = f"v_m{m_src}_l{l_src}_k{k_src}"
+                    
+                    # --- ここから修正 ---
+                    if m_src == 'R':
+                        # 供給元がピアRノードの場合
+                        # l_src は Rノードのindex (core/problem.py で定義)
+                        try:
+                            peer_node = self.problem.peer_nodes[l_src]
+                            p_src = peer_node['p_value']
+                            src_name = peer_node['name']
+                        except (IndexError, KeyError):
+                            p_src = 'N/A'
+                            src_name = f"Invalid_R_Node_idx{l_src}"
+                    else:
+                        # 供給元がDFMMノードの場合 (既存のロジック)
+                        try:
+                            p_src = self.problem.p_values[m_src].get((l_src, k_src), 'N/A')
+                            src_name = f"v_m{m_src}_l{l_src}_k{k_src}"
+                        except (IndexError, TypeError):
+                             # m_srcが整数でない場合の安全策 (基本的には発生しないはず)
+                            p_src = 'N/A'
+                            src_name = f"Invalid_DFMM_Node_{m_src}_{l_src}_{k_src}"
+                    # --- 修正ここまで ---
+                            
                     content.append(f"  -> {src_name} (P={p_src})")
         return content

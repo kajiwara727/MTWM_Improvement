@@ -72,29 +72,17 @@ class FileLoadRunner(BaseRunner):
             output_dir_name = self._get_unique_output_directory_name(config_hash, base_run_name)
             output_dir = os.path.join(base_output_dir, output_dir_name)
 
-            # 共通の単一最適化実行メソッドを呼び出す
-            final_value, exec_time, total_ops, total_reagents = self._run_single_optimization(targets_config_base, output_dir, self.config.RUN_NAME)
+            # --- 変更: total_waste を受け取る ---
+            final_value, exec_time, total_ops, total_reagents, total_waste = self._run_single_optimization(targets_config_base, output_dir, self.config.RUN_NAME)
             
-            # --- 結果の収集 ---
-            # total_wasteを明示的に格納
-            total_waste = final_value if self.config.OPTIMIZATION_MODE.lower() == 'waste' else total_ops if self.config.OPTIMIZATION_MODE.lower() == 'operations' else total_reagents
-            
-            # wasteモードでなければ、final_value (目的値) と total_waste (計算されたwaste) は異なるため、総waste量を別途計算する
-            if self.config.OPTIMIZATION_MODE.lower() != 'waste':
-                # total_wasteを別途取得するため、analyze_solutionを実行したreporterを再利用する必要があるが、
-                # _run_single_optimizationの外部からはアクセスできないため、暫定的にNoneとする。
-                # ただし、現状の_run_single_optimizationの返り値から total_ops, total_reagents は取得できているため、
-                # total_wasteは総waste量の最小値が目的値でない限り、正確な値を求めることができない。
-                # ここでは、簡便のために total_waste の値を final_value と区別して格納する。
-                pass # final_value, total_ops, total_reagents はそのまま使用
-            
+            # --- 変更: 複雑なロジックを削除し、total_waste を辞書に直接追加 ---
             all_comparison_results.append({
                 'run_name': run_name_prefix, 
                 'final_value': final_value, 
                 'elapsed_time': exec_time,
                 'total_operations': total_ops, 
                 'total_reagents': total_reagents,
-                'total_waste': total_waste if self.config.OPTIMIZATION_MODE.lower() == 'waste' else None, # wasteが目的値の場合のみ格納
+                'total_waste': total_waste, # <-- 修正
                 'config': targets_config_base,
                 'objective_mode': self.config.OPTIMIZATION_MODE
             })

@@ -60,11 +60,10 @@ class PermutationRunner(BaseRunner):
             run_name = f"run_{i+1}_{perm_name}"
             output_dir = os.path.join(base_output_dir, run_name)
 
-            # 共通の単一最適化実行メソッドを呼び出し
-            final_value, exec_time, total_ops, total_reagents = self._run_single_optimization(temp_config, output_dir, run_name)
+            # --- 変更: total_waste を受け取る ---
+            final_value, exec_time, total_ops, total_reagents, total_waste = self._run_single_optimization(temp_config, output_dir, run_name)
 
-            # --- 結果を収集 ---
-            # NOTE: final_valueは最小化された目的値（waste, ops, または reagents）です
+            # --- 変更: total_waste を辞書に追加 ---
             all_run_results.append({
                 'run_name': run_name, 
                 'targets': copy.deepcopy(temp_config), # 使用した正確な順列を保存
@@ -72,6 +71,7 @@ class PermutationRunner(BaseRunner):
                 'elapsed_time': exec_time,
                 'total_operations': total_ops, 
                 'total_reagents': total_reagents,
+                'total_waste': total_waste, # <-- 修正
                 'objective_mode': self.config.OPTIMIZATION_MODE
             })
             # --- 収集終わり ---

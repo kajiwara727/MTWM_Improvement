@@ -15,6 +15,7 @@ class SolutionVisualizer:
     STYLE_CONFIG = {
         'mix_node': {'color': '#87CEEB', 'size': 2000},       # 中間生成物ノード
         'target_node': {'color': '#90EE90', 'size': 2000},    # 最終ターゲットノード
+        'mix_peer_node': {'color': '#FFB6C1', 'size': 1800},  # 【新規】ピア混合(R)ノード
         'reagent_node': {'color': '#FFDAB9', 'size': 1500},   # 試薬ノード
         'waste_node': {'color': 'black', 'size': 300, 'shape': 'o'}, # 廃棄物ノード
         'default_node': {'color': 'gray', 'size': 1000},
@@ -57,12 +58,12 @@ class SolutionVisualizer:
 
     def _build_graph_from_model(self):
         """
-        Z3ソルバーのモデルを解析し、networkx用のグラフデータ（ノードとエッジ）を構築します。
+        【修正】Z3ソルバーのモデルを解析し、DFMMノードとピアRノードからグラフを構築します。
         """
         G = nx.DiGraph()
         edge_volumes = {} # エッジに表示する液量を保存する辞書
 
-        # アクティブな（実際に使われている）ノードのみを処理
+        # 1. アクティブなDFMMノードを処理
         for m, l, k, node, total_input in self._iterate_active_nodes():
             node_name = f"m{m}_l{l}_k{k}"
             ratio_vals = [self.model.eval(r).as_long() for r in node['ratio_vars']]
@@ -77,10 +78,48 @@ class SolutionVisualizer:
             self._add_reagent_edges(G, edge_volumes, node, node_name, l, m)
             self._add_sharing_edges(G, edge_volumes, node, node_name, m)
 
+        # 2. 【新規】アクティブなピアRノードを処理
+        for i, peer_node in enumerate(self.problem.peer_nodes):
+            # (z3.Sum は OrToolsModelAdapter が解釈)
+            total_input = self.model.eval(z3.Sum(list(peer_node['input_vars'].values()))).as_long()
+            if total_input == 0: continue
+
+            node_name = peer_node['name']
+            ratio_vals = [self.model.eval(r).as_long() for r in peer_node['ratio_vars']]
+            label = f"R-Mix\n[{':'.join(map(str, ratio_vals))}]"
+            
+            # Rノードのレベルとターゲット(X座標)を親ノードに基づいて決定
+            src_a_id = peer_node['source_a_id'] # (m, l, k)
+            src_b_id = peer_node['source_b_id']
+            
+            # レベルは親レベルの中間 (-0.5) にする
+            level = (src_a_id[1] + src_b_id[1]) / 2.0 - 0.5
+            # ターゲット(X座標)は、1番目の親のターゲットに合わせる
+            target_idx = src_a_id[0]
+
+            G.add_node(node_name, label=label, level=level, target=target_idx, type='mix_peer') # 新しいタイプ
+
+            # Rノードの廃棄物を追加
+            self._add_waste_node(G, peer_node, node_name)
+            
+            # Rノードへの入力エッジ (1:1 Mix) を追加
+            w_a = self.model.eval(peer_node['input_vars']['from_a']).as_long()
+            w_b = self.model.eval(peer_node['input_vars']['from_b']).as_long()
+            
+            name_a = f"m{src_a_id[0]}_l{src_a_id[1]}_k{src_a_id[2]}"
+            name_b = f"m{src_b_id[0]}_l{src_b_id[1]}_k{src_b_id[2]}"
+            
+            if w_a > 0:
+                G.add_edge(name_a, node_name, volume=w_a)
+                edge_volumes[(name_a, node_name)] = w_a
+            if w_b > 0:
+                G.add_edge(name_b, node_name, volume=w_b)
+                edge_volumes[(name_b, node_name)] = w_b
+
         return G, edge_volumes
 
     def _iterate_active_nodes(self):
-        """モデルで実際に使用されている（総入力が0より大きい）ノードのみを巡回するジェネレータ。"""
+        """モデルで実際に使用されている（総入力が0より大きい）DFMMノードのみを巡回するジェネレータ。"""
         for m, tree in enumerate(self.problem.forest):
             for l, nodes in tree.items():
                 for k, node in enumerate(nodes):
@@ -111,7 +150,9 @@ class SolutionVisualizer:
                 edge_volumes[(reagent_name, dest_name)] = r_val
 
     def _add_sharing_edges(self, G, edge_volumes, node, dest_name, dest_tree_idx):
-        """中間液の共有（あるノードから別のノードへの液体の流れ）を表すエッジを追加する。"""
+        """DFMM中間液の共有（あるノードから別のノードへの液体の流れ）を表すエッジを追加する。"""
+        # Rノードへのエッジは _build_graph_from_model で処理される
+        # この関数は DFMM ノード (dest_name) への入力エッジのみを処理する
         all_sharing = {**node.get('intra_sharing_vars',{}), **node.get('inter_sharing_vars',{})}
         for key, w_var in all_sharing.items():
             if (val := self.model.eval(w_var).as_long()) > 0:
@@ -120,12 +161,23 @@ class SolutionVisualizer:
                 edge_volumes[(src_name, dest_name)] = val
 
     def _parse_source_node_name(self, key, dest_tree_idx):
-        """共有変数のキー文字列（'from_m0_l2k1'など）から供給元ノード名を復元する。"""
+        """【修正】共有変数のキー文字列（'from_R_idx5'など）から供給元ノード名を復元する。"""
         key = key.replace('from_', '')
-        if key.startswith('m'): # inter-sharing (ツリー間)
+        
+        if key.startswith('R_idx'):
+            # ピアRノードからの共有
+            idx = int(key.replace('R_idx', ''))
+            try:
+                # problem オブジェクトからRノードのユニーク名を取得
+                return self.problem.peer_nodes[idx]['name']
+            except (IndexError, KeyError):
+                return f"Invalid_R_Node_{idx}" # Fallback
+        
+        elif key.startswith('m'): # inter-sharing (ツリー間)
             m_src, lk_src = key.split('_l')
             l_src, k_src = lk_src.split('k')
             return f"{m_src}_l{l_src}_k{k_src}"
+        
         else: # intra-sharing (ツリー内)
             l_src, k_src = key.split('k')
             return f"m{dest_tree_idx}_l{l_src.replace('l','')}_k{k_src}"
@@ -248,10 +300,11 @@ class SolutionVisualizer:
             plt.close(fig)
 
     def _get_node_style(self, node_data):
-        """ノードのデータ（typeなど）に基づいて、適用するスタイル辞書を返すヘルパー関数。"""
+        """【修正】ノードのデータ（typeなど）に基づいて、適用するスタイル辞書を返すヘルパー関数。"""
         cfg = self.STYLE_CONFIG
         node_type = node_data.get('type')
         if node_type == 'mix': style = cfg['target_node'] if node_data.get('level') == 0 else cfg['mix_node']
+        elif node_type == 'mix_peer': style = cfg['mix_peer_node'] # 【新規】
         elif node_type == 'reagent': style = cfg['reagent_node']
         elif node_type == 'waste': style = cfg['waste_node']
         else: style = cfg['default_node']

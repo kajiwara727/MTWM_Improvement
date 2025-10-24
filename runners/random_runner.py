@@ -117,13 +117,18 @@ class RandomRunner(BaseRunner):
             run_name = f"run_{i+1}"
             output_dir = os.path.join(base_output_dir, run_name)
 
-            final_waste, exec_time, total_ops, total_reagents = self._run_single_optimization(temp_config, output_dir, run_name)
+            # --- 変更: total_waste を受け取る ---
+            final_value, exec_time, total_ops, total_reagents, total_waste = self._run_single_optimization(temp_config, output_dir, run_name)
 
+            # --- 変更: total_waste と objective_mode を辞書に追加 ---
             all_run_results.append({
                 'run_name': run_name, 'config': temp_config,
-                'final_value': final_waste, 'elapsed_time': exec_time,
-                'total_operations': total_ops, 'total_reagents': total_reagents
+                'final_value': final_value, 'elapsed_time': exec_time,
+                'total_operations': total_ops, 'total_reagents': total_reagents,
+                'total_waste': total_waste,
+                'objective_mode': self.config.OPTIMIZATION_MODE
             })
+            # --- 変更ここまで ---
 
             saved_configs.append({
                 'run_name': run_name,
