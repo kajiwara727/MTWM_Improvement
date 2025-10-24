@@ -4,6 +4,7 @@ import itertools
 from functools import reduce
 import operator
 
+
 def find_factors_for_sum(ratio_sum, max_factor):
     """
     DFMM (Digital Microfluidic Mixing) アルゴリズムに基づき、比率の合計値（ratio_sum）を
@@ -17,22 +18,29 @@ def find_factors_for_sum(ratio_sum, max_factor):
     Returns:
         list[int] or None: 見つかった因数のリスト（降順ソート済み）。見つからない場合はNone。
     """
-    if ratio_sum <= 1: return []
-    n, factors = ratio_sum, []
-    while n > 1:
+    if ratio_sum <= 1:
+        return []
+
+    remaining_sum, factors = ratio_sum, []
+
+    while remaining_sum > 1:
         found_divisor = False
         # 効率化のため、大きな因数から試す
-        for d in range(max_factor, 1, -1):
-            if n % d == 0:
-                factors.append(d)
-                n //= d
+        for divisor in range(max_factor, 1, -1):
+            if remaining_sum % divisor == 0:
+                factors.append(divisor)
+                remaining_sum //= divisor
                 found_divisor = True
                 break
         # どの因数でも割り切れなかった場合、分解は不可能
         if not found_divisor:
-            print(f"Error: Could not find factors for sum {ratio_sum}. Failed at {n}.")
+            print(
+                f"Error: Could not find factors for sum {ratio_sum}. Failed at {remaining_sum}."
+            )
             return None
+
     return sorted(factors, reverse=True)
+
 
 def generate_unique_permutations(factors):
     """
@@ -50,6 +58,7 @@ def generate_unique_permutations(factors):
     # set を使うことで、同じ順列が複数回現れるのを防ぐ (例: [3, 3, 2] など)
     return list(set(itertools.permutations(factors)))
 
+
 def build_dfmm_forest(targets_config):
     """
     DFMMアルゴリズムに基づき、各ターゲットの混合ツリー構造（親子関係）を構築します。
@@ -60,48 +69,70 @@ def build_dfmm_forest(targets_config):
 
     Returns:
         list[dict]: 各ツリーのノードと親子関係を格納した辞書のリスト（フォレスト）。
+                       各辞書のキーは (level, node_idx) タプル、
+                       値は {'children': list[tuple]} 形式。
     """
     forest_structure = []
     for target in targets_config:
-        ratios, factors = target['ratios'], target['factors']
+        ratios, factors = target["ratios"], target["factors"]
         num_levels = len(factors)
 
-        tree_nodes = {}
+        tree_structure = {}
         # 最初は最下層（leaf node）の入力として試薬の比率を扱う
         values_to_process = list(ratios)
-        nodes_from_below_ids = []
+        # 下位レベルから上がってきたノードID (level, node_idx) のリスト
+        child_node_ids = []
 
         # 混合ツリーを下のレベル（leaf）から上のレベル（root）へと構築していく
-        for l in range(num_levels - 1, -1, -1):
-            factor = factors[l]
+        # level は 0 (root) から num_levels-1 (leafに近い) へ
+        for level in range(num_levels - 1, -1, -1):
+            current_factor = factors[level]
+
             # 現在のレベルでの混合操作における「余り」と「商」を計算
-            level_remainders = [v % factor for v in values_to_process]
-            level_quotients = [v // factor for v in values_to_process]
+            # 余り: このレベルで直接投入される試薬量に対応
+            # 商: このレベルの出力となり、上位レベルへの入力となる量に対応
+            level_remainders = [v % current_factor for v in values_to_process]
+            level_quotients = [v // current_factor for v in values_to_process]
 
             # 現在のレベルで必要となるノード（ミキサー）の数を計算
-            # 入力は、試薬の余りと下位レベルから上がってきた中間液の合計
-            total_inputs = sum(level_remainders) + len(nodes_from_below_ids)
-            num_nodes_at_level = math.ceil(total_inputs / factor) if total_inputs > 0 else 0
-            current_level_node_ids = [(l, k) for k in range(num_nodes_at_level)]
+            # 入力は、(1) このレベルで直接投入される試薬(余り) と
+            # (2) 下位レベルから上がってきた中間液(子ノード数) の合計
+            total_inputs_at_level = sum(level_remainders) + len(child_node_ids)
 
-            # ノードをツリーに追加
+            # 必要なミキサー数 = ceil(総入力 / 現在レベルの因数)
+            num_nodes_at_level = (
+                math.ceil(total_inputs_at_level / current_factor)
+                if total_inputs_at_level > 0
+                else 0
+            )
+            # このレベルに存在するノードIDのリスト (例: [(1, 0), (1, 1)])
+            current_level_node_ids = [(level, k) for k in range(num_nodes_at_level)]
+
+            # ノードをツリー構造に追加 (初期状態では子は空リスト)
             for node_id in current_level_node_ids:
-                tree_nodes[node_id] = {'children': []}
+                tree_structure[node_id] = {"children": []}
 
             # 下のレベルからのノード（子）を、現在のレベルのノード（親）に均等に接続
             if num_nodes_at_level > 0:
-                parent_idx = 0
-                for child_id in nodes_from_below_ids:
-                    parent_node_id = current_level_node_ids[parent_idx]
-                    tree_nodes[parent_node_id]['children'].append(child_id)
-                    parent_idx = (parent_idx + 1) % num_nodes_at_level # ラウンドロビンで割り当て
+                parent_node_idx = 0
+                # 各子ノードIDについてループ
+                for child_id in child_node_ids:
+                    # ラウンドロビンで割り当てる親ノードIDを取得
+                    parent_node_id = current_level_node_ids[parent_node_idx]
+                    # 親ノードの 'children' リストに子ノードIDを追加
+                    tree_structure[parent_node_id]["children"].append(child_id)
+                    # 次の親ノードのインデックスへ (循環させる)
+                    parent_node_idx = (parent_node_idx + 1) % num_nodes_at_level
 
             # 次の（一つ上の）レベルの計算準備
-            nodes_from_below_ids = current_level_node_ids
+            # 現在レベルのノードが、次のレベルの子ノードとなる
+            child_node_ids = current_level_node_ids
+            # 現在レベルの商が、次のレベルで処理される値となる
             values_to_process = level_quotients
 
-        forest_structure.append(tree_nodes)
+        forest_structure.append(tree_structure)
     return forest_structure
+
 
 def calculate_p_values_from_structure(forest_structure, targets_config):
     """
@@ -113,11 +144,14 @@ def calculate_p_values_from_structure(forest_structure, targets_config):
         targets_config (list[dict]): 各ターゲットの設定リスト。
 
     Returns:
-        list[dict]: 各ツリーのノードとそのP値を格納した辞書のリスト。
+        list[dict]: 各ツリーのノードとそのP値を格納した辞書のリスト (p_value_maps)。
+                    各辞書のキーは (level, node_idx) タプル、値は P値 (int)。
     """
-    p_forest = []
-    for m, tree_structure in enumerate(forest_structure):
-        factors, memo, p_tree = targets_config[m]['factors'], {}, {}
+    p_value_maps = []
+    for target_idx, tree_structure in enumerate(forest_structure):
+        factors = targets_config[target_idx]["factors"]
+        p_value_cache = {}
+        p_value_map = {}
 
         def prod(iterable):
             """イテラブルなオブジェクトの要素の積を計算するヘルパー関数。"""
@@ -125,23 +159,31 @@ def calculate_p_values_from_structure(forest_structure, targets_config):
 
         def get_p_for_node(node_id):
             """メモ化再帰を用いて、特定のノードのP値を計算する。"""
-            if node_id in memo: return memo[node_id]
+            # キャッシュにあればそれを返す
+            if node_id in p_value_cache:
+                return p_value_cache[node_id]
+
             level, k = node_id
-            children = tree_structure.get(node_id, {}).get('children', [])
+            # 子ノードを取得 (存在しない場合は空リスト)
+            children = tree_structure.get(node_id, {}).get("children", [])
 
             if not children:
-                # 子がいない場合（最下層に近いノード）、P値はそのレベル以降のfactorの積
-                p = prod(factors[level:])
+                # 子がいない場合（最下層に近いノード）、P値はそのレベル「以降」のfactorの積
+                # 例: factors = [3, 2, 3], level=1 -> prod([2, 3]) = 6
+                p_value = prod(factors[level:])
             else:
-                # 子がいる場合、P値は子のP値の最大値にそのレベルのfactorを掛けたもの
+                # 子がいる場合、P値は「子のP値の最大値」に「そのレベルのfactor」を掛けたもの
                 max_child_p = max(get_p_for_node(child_id) for child_id in children)
-                p = max_child_p * factors[level]
+                p_value = max_child_p * factors[level]
 
-            memo[node_id] = p
-            return p
+            # 計算結果をキャッシュして返す
+            p_value_cache[node_id] = p_value
+            return p_value
 
         # ツリー内の全ノードに対してP値を計算
         for node_id in tree_structure:
-            p_tree[node_id] = get_p_for_node(node_id)
-        p_forest.append(p_tree)
-    return p_forest
+            p_value_map[node_id] = get_p_for_node(node_id)
+
+        p_value_maps.append(p_value_map)
+
+    return p_value_maps
