@@ -8,8 +8,7 @@ RUN_NAME = "100times-random"
 # 'auto_permutations': 'auto' で計算された factors の全順列を試し、最適な階層構造を探します。
 # 'random': RANDOM_SETTINGS に基づいてランダムなシナリオを複数回実行します。
 # 'file_load': CONFIG_LOAD_FILEで指定されたJSONファイルから設定を読み込みます。
-FACTOR_EXECUTION_MODE = "auto_permutations"
-
+FACTOR_EXECUTION_MODE = "file_load"
 # 最適化の目的を設定します。
 # "waste": 廃棄物量の最小化を目指します。（最も重要な目的）
 # "operations": 混合操作の総回数の最小化を目指します。（プロセス簡略化）
