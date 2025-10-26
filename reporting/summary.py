@@ -4,6 +4,12 @@ import os
 def _calculate_and_save_summary(
     run_results, output_dir, filename_prefix, title_prefix, objective_mode
 ):
+    """
+    複数の実行結果(run_results)を受け取り、
+    それらの平均値などを計算し、サマリーファイルとして保存する共通内部関数。
+    
+    'random' と 'file_load' (comparison) モードで使用されます。
+    """
     filepath = os.path.join(output_dir, f"_{filename_prefix}_summary.txt")
 
     content = [
@@ -13,12 +19,14 @@ def _calculate_and_save_summary(
         f"\nTotal simulations executed: {len(run_results)}\n",
     ]
 
+    # --- 1. 各実行の詳細をリストアップ ---
     for run_result in run_results:
         content.append("-" * 50)
         content.append(f"Run Name: {run_result['run_name']}")
         content.append(f"  -> Execution Time: {run_result['elapsed_time']:.2f} seconds")
 
         if run_result["final_value"] is not None:
+            # 解が見つかった場合
             mode_lower = objective_mode.lower()
             objective_label = "Final Objective Value"
             if mode_lower == "waste":
@@ -39,8 +47,10 @@ def _calculate_and_save_summary(
                 f"  -> Total Waste Generated: {run_result.get('total_waste', 'N/A')}"
             )
         else:
+            # 解が見つからなかった場合
             content.append("  -> No solution was found for this configuration.")
 
+        # 実行に使われた設定 (ratios) も記載
         if "config" in run_result and run_result["config"]:
             content.append("  -> Target Configurations:")
             for target_idx, config in enumerate(run_result["config"]):
@@ -48,11 +58,15 @@ def _calculate_and_save_summary(
                 content.append(f"    - Target {target_idx+1}: Ratios = [{ratios_str}]")
             content.append("")
 
+    # --- 2. 全実行の平均値を計算 ---
+    
+    # 解が見つかった実行のみをフィルタリング
     successful_runs = [res for res in run_results if res["final_value"] is not None]
     num_successful_runs = len(successful_runs)
     mode_label = objective_mode.title()
 
     if num_successful_runs > 0:
+        # 安全に合計値を計算するヘルパー関数
         def sum_metric_safe(metric_key):
             return sum(
                 run.get(metric_key, 0)
@@ -74,6 +88,7 @@ def _calculate_and_save_summary(
         avg_reagents = total_reagents / num_successful_runs
         # --- ★★★ ---
 
+        # 平均値のセクションをコンテンツに追加
         content.append("\n" + "=" * 50)
         content.append(
             f"        Average Results (based on {num_successful_runs} successful runs)        "
@@ -89,6 +104,7 @@ def _calculate_and_save_summary(
     else:
         content.append("\nNo successful runs found to calculate averages.")
 
+    # --- 3. ファイルへの保存 ---
     try:
         with open(filepath, "w", encoding="utf-8") as f:
             f.write("\n".join(content))
@@ -101,8 +117,10 @@ def _calculate_and_save_summary(
         print(f"\nError saving {title_prefix} run summary file: {e}")
         return False
 
+# --- 公開関数 (各Runnerから呼び出される) ---
 
 def save_random_run_summary(run_results, output_dir):
+    """'random' モード用のサマリーを保存する"""
     objective_mode = "waste"
     if run_results and "objective_mode" in run_results[0]:
         objective_mode = run_results[0]["objective_mode"]
@@ -113,12 +131,16 @@ def save_random_run_summary(run_results, output_dir):
 
 
 def save_comparison_summary(run_results, output_dir, objective_mode):
+    """'file_load' モード用のサマリーを保存する"""
     _calculate_and_save_summary(
         run_results, output_dir, "comparison_runs", "Comparison", objective_mode
     )
 
 
 def save_permutation_summary(run_results, output_dir, objective_mode):
+    """'auto_permutations' モード用のサマリーを保存する
+       (平均値ではなく、ベスト/セカンドベストのパターンを報告する)
+    """
     # 1. 成功した実行のみをフィルタリング
     successful_runs = [res for res in run_results if res["final_value"] is not None]
 
@@ -126,16 +148,16 @@ def save_permutation_summary(run_results, output_dir, objective_mode):
         print("\n[Permutation Summary] No successful runs found.")
         return
 
-    # 2. 目的値でソート (昇順)
+    # 2. 目的値 (例: 廃棄物量) でソート (昇順)
     successful_runs.sort(key=lambda x: x["final_value"])
     min_objective_value = successful_runs[0]["final_value"]
 
-    # 3. ベストパターンを抽出
+    # 3. ベストパターン (目的値が最小値と一致するもの全て) を抽出
     best_runs = [
         run for run in successful_runs if run["final_value"] == min_objective_value
     ]
 
-    # 4. セカンドベストパターンを抽出
+    # 4. セカンドベストパターン (最小値より大きいもののうち最小の値) を抽出
     second_min_objective_value = None
     for run in successful_runs:
         if run["final_value"] > min_objective_value:
@@ -181,6 +203,7 @@ def save_permutation_summary(run_results, output_dir, objective_mode):
         content.append(f"  Total Waste: {best_run.get('total_waste', 'N/A')}")
         content.append(f"  Elapsed Time: {best_run['elapsed_time']:.2f} sec")
         content.append("  Target Permutation Structure:")
+        # このパターンの 'factors' を表示
         for target_config in best_run["targets"]:
             ratios_str = ", ".join(map(str, target_config["ratios"]))
             factors_str = ", ".join(map(str, target_config["factors"]))
@@ -200,6 +223,7 @@ def save_permutation_summary(run_results, output_dir, objective_mode):
             content.append(
                 f"\n--- Rank 2 Pattern {i+1} (Run: {second_best_run['run_name']}) ---"
             )
+            # ... (ベストパターンと同様の詳細) ...
             content.append(
                 f"  Final Objective Value ({objective_label}): {second_best_run['final_value']}"
             )

@@ -1,4 +1,6 @@
 # utils/config_loader.py
+
+# config.py ファイルから全ての設定をインポート
 import config
 
 
@@ -8,9 +10,13 @@ class Config:
     一元的に管理するためのクラス。
     これにより、設定へのアクセスが容易になり、コードの他の部分から
     設定ファイルの詳細を隠蔽します。
+    
+    他のファイルからは `from utils.config_loader import Config` のように呼び出し、
+    `Config.MODE` や `Config.MAX_MIXER_SIZE` のようにアクセスします。
     """
 
-    # config.py から主要な設定値をクラス属性として読み込む
+    # --- config.py から主要な設定値をクラス属性として読み込む ---
+    # `config.RUN_NAME` の値を `Config.RUN_NAME` にコピー
     RUN_NAME = config.RUN_NAME
     MODE = config.FACTOR_EXECUTION_MODE
     OPTIMIZATION_MODE = config.OPTIMIZATION_MODE
@@ -21,7 +27,7 @@ class Config:
     MAX_MIXER_SIZE = config.MAX_MIXER_SIZE
     # RANDOM_SETTINGS = config.RANDOM_SETTINGS (削除)
 
-    # 'random' モード用の設定を個別に読み込む
+    # --- 'random' モード用の設定を個別に読み込む ---
     RANDOM_T_REAGENTS = config.RANDOM_T_REAGENTS
     RANDOM_N_TARGETS = config.RANDOM_N_TARGETS
     RANDOM_K_RUNS = config.RANDOM_K_RUNS
@@ -34,25 +40,35 @@ class Config:
         """
         現在の実行モード (MODE) に応じて、config.py から適切な
         ターゲット設定リストを返します。
-        静的メソッドなので、インスタンス化せずに呼び出せます (Config.get_targets_config())。
+        
+        静的メソッド(@staticmethod)なので、インスタンス化せずに
+        `Config.get_targets_config()` のように呼び出せます。
 
         Returns:
-            list: ターゲット設定のリスト。
+            list: ターゲット設定のリスト (例: [{'name': 'T1', 'ratios': [1,2,3], ...}])
 
         Raises:
             ValueError: config.pyで未知のモードが指定されている場合に発生します。
         """
+        # 現在のモードが 'auto' または 'auto_permutations' の場合
         if Config.MODE in ["auto", "auto_permutations"]:
             # 'auto'系モードの場合は、TARGETS_FOR_AUTO_MODE を使用
             return config.TARGETS_FOR_AUTO_MODE
+        
+        # 現在のモードが 'manual' の場合
         elif Config.MODE == "manual":
             # 'manual'モードの場合は、TARGETS_FOR_MANUAL_MODE を使用
             return config.TARGETS_FOR_MANUAL_MODE
-        elif Config.MODE == "random":
-            # 'random'モードではターゲット設定は動的に生成されるため、ここでは空リストを返す
+        
+        # 現在のモードが 'random' または 'file_load' の場合
+        elif Config.MODE == "random" or Config.MODE == "file_load":
+            # これらのモードではターゲット設定は動的に生成/ロードされるため、
+            # このメソッドからは設定を返さない (空リストを返す)
             return []
+        
+        # 上記のいずれにも該当しない未知のモードの場合
         else:
-            # いずれにも該当しない場合はエラー
+            # エラーを発生させてプログラムを停止
             raise ValueError(
                 f"Unknown FACTOR_EXECUTION_MODE in config.py: '{Config.MODE}'"
             )
