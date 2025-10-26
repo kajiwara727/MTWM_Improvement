@@ -8,7 +8,7 @@ RUN_NAME = "100times-random"
 # 'auto_permutations': 'auto' で計算された factors の全順列を試し、最適な階層構造を探します。
 # 'random': RANDOM_SETTINGS に基づいてランダムなシナリオを複数回実行します。
 # 'file_load': CONFIG_LOAD_FILEで指定されたJSONファイルから設定を読み込みます。
-FACTOR_EXECUTION_MODE = "random"
+FACTOR_EXECUTION_MODE = "auto_permutations"
 
 # 最適化の目的を設定します。
 # "waste": 廃棄物量の最小化を目指します。（最も重要な目的）
@@ -51,7 +51,7 @@ RANDOM_T_REAGENTS = 3
 # ランダムシナリオにおけるターゲット（目標混合液）の数 (例: 3ターゲット)
 RANDOM_N_TARGETS = 3
 # 生成・実行するランダムシナリオの総数 (例: 100回)
-RANDOM_K_RUNS = 100
+RANDOM_K_RUNS = 10
 
 # --- 混合比和の生成ルール（以下の優先順位で適用されます） ---
 # 優先度1: 固定シーケンス（RANDOM_N_TARGETSと要素数を一致させる必要あり）

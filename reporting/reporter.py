@@ -4,7 +4,6 @@ from config import MAX_SHARING_VOLUME, MAX_LEVEL_DIFF, MAX_MIXER_SIZE
 # 可視化クラスをインポート
 from .visualizer import SolutionVisualizer
 
-
 class SolutionReporter:
     """
     ソルバーが見つけた解（OrToolsSolutionModel）を解析し、

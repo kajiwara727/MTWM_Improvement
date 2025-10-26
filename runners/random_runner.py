@@ -2,9 +2,9 @@ import os
 import random
 import json
 from .base_runner import BaseRunner  # 親クラス
-from core.dfmm import find_factors_for_sum  # 階層(factors)を計算する関数
-from utils.helpers import generate_random_ratios  # ランダムな比率(ratios)を生成する関数
-from reporting.summary import save_random_run_summary  # ランダム実行専用のサマリー関数
+from core import find_factors_for_sum
+from utils import generate_random_ratios
+from reporting import save_random_run_summary
 
 
 class RandomRunner(BaseRunner):

@@ -1,7 +1,7 @@
 # runners/file_load_runner.py
 from .base_runner import BaseRunner
-from utils.helpers import generate_config_hash
-from reporting.summary import save_comparison_summary # 専用のサマリー関数
+from utils import generate_config_hash
+from reporting import save_comparison_summary # 専用のサマリー関数
 import json
 import os
 

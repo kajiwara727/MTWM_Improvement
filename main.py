@@ -4,7 +4,7 @@ from runners import RUNNER_MAP
 
 # utils.config_loader モジュールから Config クラスをインポート
 # Config クラスは、config.py の設定値を保持している
-from utils.config_loader import Config
+from utils import Config
 
 
 def main():

@@ -3,9 +3,9 @@ import os
 import itertools  # 順列や組み合わせを扱うための標準ライブラリ
 import copy       # 辞書やリストを深くコピーするために使用
 from .base_runner import BaseRunner
-from core.dfmm import find_factors_for_sum, generate_unique_permutations
-from utils.helpers import generate_config_hash
-from reporting.summary import save_permutation_summary  # 専用のサマリー関数
+from core import find_factors_for_sum, generate_unique_permutations
+from utils import generate_config_hash
+from reporting import save_permutation_summary  # 専用のサマリー関数
 
 
 class PermutationRunner(BaseRunner):

@@ -2,7 +2,7 @@ import time
 import sys
 from ortools.sat.python import cp_model  # Or-Tools の CP-SAT ソルバーをインポート
 from config import MAX_SHARING_VOLUME, MAX_MIXER_SIZE
-from utils.helpers import (
+from utils import (     # 変更後
     create_dfmm_node_name,
     create_intra_key,
     create_inter_key,

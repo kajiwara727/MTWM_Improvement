@@ -3,7 +3,7 @@ import os
 import networkx as nx  # グラフ構造の作成・操作
 import matplotlib.pyplot as plt # グラフの描画
 import matplotlib.colors as mcolors # 色の正規化
-from utils.helpers import create_dfmm_node_name, parse_sharing_key
+from utils import create_dfmm_node_name, parse_sharing_key
 
 
 class SolutionVisualizer:

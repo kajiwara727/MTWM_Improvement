@@ -3,12 +3,14 @@ import os
 from abc import ABC, abstractmethod  # 抽象基底クラス(ABC)をインポート
 
 # --- プロジェクトのコアモジュールをインポート ---
-from core.problem import MTWMProblem
-from core.dfmm import build_dfmm_forest, calculate_p_values_from_structure
-from or_tools_solver import OrToolsSolver
+from core import (
+    MTWMProblem,
+    build_dfmm_forest,
+    calculate_p_values_from_structure,
+    OrToolsSolver,
+)
 from reporting.reporter import SolutionReporter
 from reporting.analyzer import PreRunAnalyzer
-
 
 class BaseRunner(ABC):  # 抽象基底クラス(ABC)を継承
     """

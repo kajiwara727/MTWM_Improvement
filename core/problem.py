@@ -2,7 +2,7 @@ import z3  # SMTソルバー Z3 (注: 変数定義にのみ使われ、実際の
 import itertools
 from config import MAX_LEVEL_DIFF  # config.py から最大レベル差をインポート
 
-from utils.helpers import (
+from utils import (     # 変更後
     create_dfmm_node_name,
     create_intra_key,
     create_inter_key,

@@ -3,9 +3,9 @@
 # 親クラスである BaseRunner をインポート
 from .base_runner import BaseRunner
 # 'auto' モードで factors を計算するために dfmm モジュールから関数をインポート
-from core.dfmm import find_factors_for_sum
+from core import find_factors_for_sum
 # 出力ディレクトリ名を生成するために helpers モジュールから関数をインポート
-from utils.helpers import generate_config_hash
+from utils import generate_config_hash
 
 
 class StandardRunner(BaseRunner):
