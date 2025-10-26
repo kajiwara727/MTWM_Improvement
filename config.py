@@ -13,6 +13,11 @@ FACTOR_EXECUTION_MODE = "auto"
 # "reagents": 総試薬使用量の最小化を目指します。
 OPTIMIZATION_MODE = "waste"
 
+# --- 出力設定 ---
+# Trueに設定すると、最適化完了後に混合ツリーの可視化グラフ (PNG画像) を生成します。
+# Falseに設定すると、グラフ生成をスキップし、処理時間を短縮できます。
+ENABLE_VISUALIZATION = True
+
 # ファイルから Target Configuration を読み込む場合に、そのファイル名を設定します。
 # ランダム実行で生成したファイル名 (例: "manual-check_eb8386bc_1/random_configs.json") を設定すると、そこから最初のパターンを読み込みます。
 CONFIG_LOAD_FILE = "random_configs.json"

@@ -69,7 +69,10 @@ class BaseRunner(ABC):
 
         # 6. SolutionReporterを初期化
         reporter = SolutionReporter(
-            problem, best_model, objective_mode=self.config.OPTIMIZATION_MODE
+            problem,
+            best_model,
+            objective_mode=self.config.OPTIMIZATION_MODE,
+            enable_visualization=self.config.ENABLE_VISUALIZATION
         )
 
         ops = None

@@ -9,7 +9,7 @@ class SolutionReporter:
     テキストベースのレポートを生成し、可視化モジュールを呼び出すクラス。
     """
 
-    def __init__(self, problem, model, objective_mode="waste"):
+    def __init__(self, problem, model, objective_mode="waste", enable_visualization=True):
         """
         コンストラクタ。
 
@@ -21,6 +21,7 @@ class SolutionReporter:
         self.problem = problem
         self.model = model  # これは OrToolsSolutionModel オブジェクト
         self.objective_mode = objective_mode
+        self.enable_visualization = enable_visualization
 
     def generate_full_report(self, min_value, elapsed_time, output_dir):
         """
@@ -37,9 +38,11 @@ class SolutionReporter:
         self._save_summary_to_file(
             analysis_results, min_value, elapsed_time, output_dir
         )
-        if self.model:
+        if self.model and self.enable_visualization: 
             visualizer = SolutionVisualizer(self.problem, self.model)
             visualizer.visualize_solution(output_dir)
+        elif self.model:
+            print("Skipping graph visualization (disabled by config).") 
 
     def _print_console_summary(self, results, min_value, elapsed_time):
         time_str = f"(in {elapsed_time:.2f} sec)"
