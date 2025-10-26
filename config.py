@@ -1,12 +1,12 @@
 # 実行名を定義します。出力ディレクトリの名前の一部として使用されます。
-RUN_NAME = "fifth-P18-100times-random"
+RUN_NAME = "100times-random"
 # 混合ツリーの階層構造（factors）を決定するモードを選択します。
 # 'manual': TARGETS_FOR_MANUAL_MODE で定義された factors を手動で設定します。
 # 'auto': 各ターゲットの ratios の合計値から factors を自動計算します。
 # 'auto_permutations': 'auto' で計算された factors の全順列を試し、最適な階層構造を探します。
 # 'random': RANDOM_SETTINGS に基づいてランダムなシナリオを複数回実行します。
 #  FACTOR_EXECUTION_MODEの選択肢に 'file_load' を追加
-FACTOR_EXECUTION_MODE = "random"
+FACTOR_EXECUTION_MODE = "auto"
 # 最適化の目的を設定します。
 # "waste": 廃棄物量の最小化を目指します。
 # "operations": 混合操作の総回数の最小化を目指します。
@@ -20,7 +20,7 @@ CONFIG_LOAD_FILE = "random_configs.json"
 # --- 制約条件 ---
 
 # ノード間で共有（中間液を融通）できる液量の最大値を設定します。Noneの場合は無制限です。
-MAX_SHARING_VOLUME = None
+MAX_SHARING_VOLUME = 1
 # 中間液を共有する際の、供給元と供給先の階層レベル（level）の差の最大値を設定します。Noneの場合は無制限です。
 MAX_LEVEL_DIFF = None
 # 1回の混合操作で使用できるミキサーの最大容量（入力の合計値）を設定します。これはDFMMアルゴリズムで混合ツリーの階層を決定する際の因数の最大値にもなります。
