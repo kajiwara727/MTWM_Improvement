@@ -1,8 +1,8 @@
 import time
 import sys
 from ortools.sat.python import cp_model  # Or-Tools の CP-SAT ソルバーをインポート
-from config import MAX_SHARING_VOLUME, MAX_MIXER_SIZE
-from utils import (     # 変更後
+from config import MAX_SHARING_VOLUME, MAX_MIXER_SIZE, MAX_CPU_WORKERS
+from utils import (    
     create_dfmm_node_name,
     create_intra_key,
     create_inter_key,
@@ -214,6 +214,9 @@ class OrToolsSolver:
         self.objective_mode = objective_mode
         self.model = cp_model.CpModel()     # Or-Tools のモデル本体
         self.solver = cp_model.CpSolver()   # Or-Tools のソルバー本体
+        if MAX_CPU_WORKERS is not None and MAX_CPU_WORKERS > 0:
+            print(f"--- Limiting solver CPU workers to {MAX_CPU_WORKERS} ---")
+            self.solver.parameters.num_workers = MAX_CPU_WORKERS
         self.forest_vars = []             # Or-Tools の DFMM ノード変数を格納
         self.peer_vars = []               # Or-Tools の ピアR ノード変数を格納
         

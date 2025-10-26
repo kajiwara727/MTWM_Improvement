@@ -8,7 +8,7 @@ RUN_NAME = "100times-random"
 # 'auto_permutations': 'auto' で計算された factors の全順列を試し、最適な階層構造を探します。
 # 'random': RANDOM_SETTINGS に基づいてランダムなシナリオを複数回実行します。
 # 'file_load': CONFIG_LOAD_FILEで指定されたJSONファイルから設定を読み込みます。
-FACTOR_EXECUTION_MODE = "file_load"
+FACTOR_EXECUTION_MODE = "random"
 # 最適化の目的を設定します。
 # "waste": 廃棄物量の最小化を目指します。（最も重要な目的）
 # "operations": 混合操作の総回数の最小化を目指します。（プロセス簡略化）
@@ -27,10 +27,15 @@ CONFIG_LOAD_FILE = "random_configs.json"
 
 # --- 制約条件 (ソルバーの挙動に大きく影響します) ---
 
+# ソルバーが使用するCPUコア（ワーカー）の最大数を設定します。
+# 共有マシンの場合は、 2 や 4 などの低い値に設定することを推奨します。
+# None に設定すると、Or-Toolsが利用可能な全コアを使用します。
+MAX_CPU_WORKERS = 8
+
 # ノード間で共有（中間液を融通）できる液量の最大値を設定します。
 # 例えば 1 に設定すると、共有は「1単位ずつ」に制限されます。
 # Noneの場合は無制限です。
-MAX_SHARING_VOLUME = None
+MAX_SHARING_VOLUME = 1
 
 # 中間液を共有する際の、供給元と供給先の階層レベル（level）の差の最大値を設定します。
 # 例えば 2 に設定すると、level 3 のノードは level 1 のノードにしか供給できません。
@@ -40,7 +45,7 @@ MAX_LEVEL_DIFF = None
 # 1回の混合操作で使用できるミキサーの最大容量（入力の合計値）を設定します。
 # これはDFMMアルゴリズムで混合ツリーの階層を決定する際の因数の最大値にもなります。
 # 例えば 5 に設定すると、[3, 3, 2] はOKですが [7, 2] はNG (7が5を超えるため) となります。
-MAX_MIXER_SIZE = 5
+MAX_MIXER_SIZE = 3
 
 # --- 'random' モード用設定 ---
 # (RANDOM_SETTINGS 辞書を廃止し、トップレベルの変数に)
@@ -48,7 +53,7 @@ MAX_MIXER_SIZE = 5
 # ランダムシナリオにおける試薬の種類数 (例: 3種類)
 RANDOM_T_REAGENTS = 3
 # ランダムシナリオにおけるターゲット（目標混合液）の数 (例: 3ターゲット)
-RANDOM_N_TARGETS = 3
+RANDOM_N_TARGETS = 5
 # 生成・実行するランダムシナリオの総数 (例: 100回)
 RANDOM_K_RUNS = 10
 
@@ -71,7 +76,7 @@ RANDOM_S_RATIO_SUM_CANDIDATES = [
 
 # 優先度3: 上記2つが有効でない場合のデフォルト値
 # この設定では、全ターゲットの比率の合計が 18 になる
-RANDOM_S_RATIO_SUM_DEFAULT = 18
+RANDOM_S_RATIO_SUM_DEFAULT = 12
 
 # --- 'auto' / 'auto_permutations' モード用設定 ---
 # 'auto'系モードでは、'factors' (混合階層) を指定する必要はありません。
