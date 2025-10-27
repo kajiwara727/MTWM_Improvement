@@ -1,6 +1,6 @@
 # 実行名を定義します。出力ディレクトリの名前の一部として使用されます。
 # 例: "My_First_Run" -> "My_First_Run_xxxx" のようなディレクトリが生成される
-RUN_NAME = "100times-random"
+RUN_NAME = ""
 
 # 混合ツリーの階層構造（factors）を決定するモードを選択します。
 # 'manual': TARGETS_FOR_MANUAL_MODE で定義された factors を手動で設定します。
@@ -35,7 +35,7 @@ MAX_CPU_WORKERS = 8
 # ノード間で共有（中間液を融通）できる液量の最大値を設定します。
 # 例えば 1 に設定すると、共有は「1単位ずつ」に制限されます。
 # Noneの場合は無制限です。
-MAX_SHARING_VOLUME = 1
+MAX_SHARING_VOLUME = None
 
 # 中間液を共有する際の、供給元と供給先の階層レベル（level）の差の最大値を設定します。
 # 例えば 2 に設定すると、level 3 のノードは level 1 のノードにしか供給できません。
@@ -45,7 +45,7 @@ MAX_LEVEL_DIFF = None
 # 1回の混合操作で使用できるミキサーの最大容量（入力の合計値）を設定します。
 # これはDFMMアルゴリズムで混合ツリーの階層を決定する際の因数の最大値にもなります。
 # 例えば 5 に設定すると、[3, 3, 2] はOKですが [7, 2] はNG (7が5を超えるため) となります。
-MAX_MIXER_SIZE = 3
+MAX_MIXER_SIZE = 5
 
 # --- 'random' モード用設定 ---
 # (RANDOM_SETTINGS 辞書を廃止し、トップレベルの変数に)
@@ -53,7 +53,7 @@ MAX_MIXER_SIZE = 3
 # ランダムシナリオにおける試薬の種類数 (例: 3種類)
 RANDOM_T_REAGENTS = 3
 # ランダムシナリオにおけるターゲット（目標混合液）の数 (例: 3ターゲット)
-RANDOM_N_TARGETS = 5
+RANDOM_N_TARGETS = 4
 # 生成・実行するランダムシナリオの総数 (例: 100回)
 RANDOM_K_RUNS = 10
 
@@ -62,9 +62,10 @@ RANDOM_K_RUNS = 10
 # 18*5' の代わりに {'base_sum': 18, 'multiplier': 5} という辞書形式を使用
 # この例はコメントアウトされているため、優先度2に移る
 RANDOM_S_RATIO_SUM_SEQUENCE = [
-    # 18,
-    # {'base_sum': 18, 'multiplier': 5},
-    # 18,
+    18,
+    {'base_sum': 18, 'multiplier': 5},
+    18,
+    24
 ]
 
 # 優先度2: 候補リストからのランダム選択
