@@ -2,15 +2,23 @@ import os
 
 
 def _calculate_and_save_summary(
-    run_results, output_dir, filename_prefix, title_prefix, objective_mode
+    run_results, output_dir, summary_filename, title_prefix, objective_mode
 ):
     """
     複数の実行結果(run_results)を受け取り、
     それらの平均値などを計算し、サマリーファイルとして保存する共通内部関数。
     
     'random' と 'file_load' (comparison) モードで使用されます。
+
+    Args:
+        run_results (list): 実行結果のリスト
+        output_dir (str): 保存先の親ディレクトリ
+        summary_filename (str): 保存するサマリーファイル名 (例: "MyRun_summary.txt")
+        title_prefix (str): レポートのタイトル (例: "Random")
+        objective_mode (str): 最適化モード
     """
-    filepath = os.path.join(output_dir, f"_{filename_prefix}_summary.txt")
+    # ファイル名を summary_filename 引数から直接決定する
+    filepath = os.path.join(output_dir, summary_filename)
 
     content = [
         "==================================================",
@@ -125,15 +133,34 @@ def save_random_run_summary(run_results, output_dir):
     if run_results and "objective_mode" in run_results[0]:
         objective_mode = run_results[0]["objective_mode"]
 
+    # 親ディレクトリ名を取得 (例: "MyRun_random_a1b2c3d4")
+    dir_name = os.path.basename(output_dir)
+    # ファイル名を生成 (例: "MyRun_random_a1b2c3d4_summary.txt")
+    summary_filename = f"{dir_name}_summary.txt"
+
     _calculate_and_save_summary(
-        run_results, output_dir, "random_runs", "Random", objective_mode
+        run_results, 
+        output_dir, 
+        summary_filename, # 変更: ファイル名を直接渡す
+        "Random", 
+        objective_mode
     )
 
 
 def save_comparison_summary(run_results, output_dir, objective_mode):
     """'file_load' モード用のサマリーを保存する"""
+    
+    # 親ディレクトリ名を取得
+    dir_name = os.path.basename(output_dir)
+    # ファイル名を生成
+    summary_filename = f"{dir_name}_summary.txt"
+
     _calculate_and_save_summary(
-        run_results, output_dir, "comparison_runs", "Comparison", objective_mode
+        run_results, 
+        output_dir, 
+        summary_filename, # 変更: ファイル名を直接渡す
+        "Comparison", 
+        objective_mode
     )
 
 
@@ -173,7 +200,12 @@ def save_permutation_summary(run_results, output_dir, objective_mode):
         ]
 
     # 5. レポートコンテンツの構築
-    filepath = os.path.join(output_dir, "_permutation_summary.txt")
+    
+    # 親ディレクトリ名を取得
+    dir_name = os.path.basename(output_dir)
+    # ファイル名を生成 (例: "MyPermutations_a1b2c3d4_summary.txt")
+    filepath = os.path.join(output_dir, f"{dir_name}_summary.txt")
+    
     objective_label = objective_mode.title()
 
     content = [

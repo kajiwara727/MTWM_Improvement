@@ -6,7 +6,7 @@ RUN_NAME = ""
 # 'manual': TARGETS_FOR_MANUAL_MODE で定義された factors を手動で設定します。
 # 'auto': 各ターゲットの ratios の合計値から factors を自動計算します。
 # 'auto_permutations': 'auto' で計算された factors の全順列を試し、最適な階層構造を探します。
-# 'random': RANDOM_SETTINGS に基づいてランダムなシナリオを複数回実行します。
+# 'random': RANDOM_... 設定に基づいてランダムなシナリオを複数回実行します。
 # 'file_load': CONFIG_LOAD_FILEで指定されたJSONファイルから設定を読み込みます。
 FACTOR_EXECUTION_MODE = "random"
 # 最適化の目的を設定します。
@@ -53,14 +53,18 @@ MAX_MIXER_SIZE = 5
 # ランダムシナリオにおける試薬の種類数 (例: 3種類)
 RANDOM_T_REAGENTS = 3
 # ランダムシナリオにおけるターゲット（目標混合液）の数 (例: 3ターゲット)
-RANDOM_N_TARGETS = 4
+RANDOM_N_TARGETS = 3
 # 生成・実行するランダムシナリオの総数 (例: 100回)
 RANDOM_K_RUNS = 10
 
-# --- 混合比和の生成ルール（以下の優先順位で適用されます） ---
-# 優先度1: 固定シーケンス（RANDOM_N_TARGETSと要素数を一致させる必要あり）
-# 18*5' の代わりに {'base_sum': 18, 'multiplier': 5} という辞書形式を使用
-# この例はコメントアウトされているため、優先度2に移る
+# --- 混合比和の生成ルール（以下のいずれか1つが使用されます） ---
+# 以下の設定は、`runners/random_runner.py` によって上から順に評価され、
+# 最初に有効な（空でない）設定が1つだけ採用されます。
+
+# オプション1: 固定シーケンス
+# `RANDOM_N_TARGETS` と要素数を一致させる必要があります。
+# (例: [18, {'base_sum': 18, 'multiplier': 5}, 18, 24])
+# これが空でないリストの場合、この設定が使用されます。
 RANDOM_S_RATIO_SUM_SEQUENCE = [
     18,
     {'base_sum': 18, 'multiplier': 5},
@@ -68,15 +72,17 @@ RANDOM_S_RATIO_SUM_SEQUENCE = [
     24
 ]
 
-# 優先度2: 候補リストからのランダム選択
-# sequenceが空の場合にこちらが評価されます。
-# この例もコメントアウトされているため、優先度3に移る
+# オプション2: 候補リストからのランダム選択
+# `RANDOM_S_RATIO_SUM_SEQUENCE` が空のリストの場合、こちらが評価されます。
+# (例: [18, 24, 30, 36])
+# これが空でないリストの場合、ターゲットごとにこのリストからランダムに値が選ばれます。
 RANDOM_S_RATIO_SUM_CANDIDATES = [
     # 18, 24, 30, 36
 ]
 
-# 優先度3: 上記2つが有効でない場合のデフォルト値
-# この設定では、全ターゲットの比率の合計が 18 になる
+# オプション3: デフォルト値
+# 上記の `SEQUENCE` と `CANDIDATES` が両方とも空のリストの場合、
+# このデフォルト値が全てのターゲットで使用されます。
 RANDOM_S_RATIO_SUM_DEFAULT = 12
 
 # --- 'auto' / 'auto_permutations' モード用設定 ---
