@@ -1,5 +1,6 @@
 import itertools
 from config import MAX_LEVEL_DIFF
+from utils.config_loader import Config
 
 from utils.helpers import (
     create_intra_key,
@@ -119,6 +120,7 @@ class MTWMProblem:
                 l_src_eff = max(
                     peer_node["source_a_id"][1], peer_node["source_b_id"][1]
                 )
+                is_valid_level_connection = (l_src_eff > dst_level)
             else:
                 p_src = self.p_value_maps[src_target_idx][(src_level, src_node_idx)]
                 l_src_eff = src_level
@@ -129,7 +131,19 @@ class MTWMProblem:
                 ):
                     continue
 
-            is_valid_level_connection = (l_src_eff > dst_level) or (l_src_eff == 0)
+                # 1. 供給元が中間ノード (level > 0) の場合
+                is_intermediate_node_connection = (l_src_eff > dst_level)
+                
+                # 2. 供給元が最終ノード (level == 0) の場合
+                #    Config フラグが True の場合のみ許可
+                is_final_node_connection = (
+                    (l_src_eff == 0) and Config.ENABLE_FINAL_PRODUCT_SHARING
+                )
+                
+                # どちらかがTrueであれば有効
+                is_valid_level_connection = (
+                    is_intermediate_node_connection or is_final_node_connection
+                )
             if not is_valid_level_connection:
                 continue
             if MAX_LEVEL_DIFF is not None and l_src_eff > dst_level + MAX_LEVEL_DIFF:

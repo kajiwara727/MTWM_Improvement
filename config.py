@@ -13,7 +13,7 @@ FACTOR_EXECUTION_MODE = "random"
 # "waste": 廃棄物量の最小化を目指します。（最も重要な目的）
 # "operations": 混合操作の総回数の最小化を目指します。（プロセス簡略化）
 # "reagents": 総試薬使用量の最小化を目指します。（コスト削減）
-OPTIMIZATION_MODE = "waste"
+OPTIMIZATION_MODE = "reagents"
 
 # --- 出力設定 ---
 # Trueに設定すると、最適化完了後に混合ツリーの可視化グラフ (PNG画像) を生成します。
@@ -30,7 +30,7 @@ CONFIG_LOAD_FILE = "random_configs.json"
 # ソルバーが使用するCPUコア（ワーカー）の最大数を設定します。
 # 共有マシンの場合は、 2 や 4 などの低い値に設定することを推奨します。
 # None に設定すると、Or-Toolsが利用可能な全コアを使用します。
-MAX_CPU_WORKERS = 8
+MAX_CPU_WORKERS = None
 
 # ノード間で共有（中間液を融通）できる液量の最大値を設定します。
 # 例えば 1 に設定すると、共有は「1単位ずつ」に制限されます。
@@ -47,6 +47,10 @@ MAX_LEVEL_DIFF = None
 # 例えば 5 に設定すると、[3, 3, 2] はOKですが [7, 2] はNG (7が5を超えるため) となります。
 MAX_MIXER_SIZE = 5
 
+# Trueに設定すると、Level 0 のノード (最終ターゲット液) も
+# 他のノードの材料として共有することを許可します。
+ENABLE_FINAL_PRODUCT_SHARING = False
+
 # --- 'random' モード用設定 ---
 # (RANDOM_SETTINGS 辞書を廃止し、トップレベルの変数に)
 
@@ -55,7 +59,7 @@ RANDOM_T_REAGENTS = 3
 # ランダムシナリオにおけるターゲット（目標混合液）の数 (例: 3ターゲット)
 RANDOM_N_TARGETS = 3
 # 生成・実行するランダムシナリオの総数 (例: 100回)
-RANDOM_K_RUNS = 10
+RANDOM_K_RUNS = 100
 
 # --- 混合比和の生成ルール（以下のいずれか1つが使用されます） ---
 # 以下の設定は、`runners/random_runner.py` によって上から順に評価され、
@@ -66,10 +70,7 @@ RANDOM_K_RUNS = 10
 # (例: [18, {'base_sum': 18, 'multiplier': 5}, 18, 24])
 # これが空でないリストの場合、この設定が使用されます。
 RANDOM_S_RATIO_SUM_SEQUENCE = [
-    18,
-    {'base_sum': 18, 'multiplier': 5},
-    18,
-    24
+    18, {'base_sum': 18, 'multiplier': 5}, 18
 ]
 
 # オプション2: 候補リストからのランダム選択
@@ -94,10 +95,9 @@ TARGETS_FOR_AUTO_MODE = [
     # {'name': 'Target 2', 'ratios': [1, 5, 6]},
     # {'name': 'Target 3', 'ratios': [4, 3, 5]},
     # {'name': 'Target 1', 'ratios': [45, 26, 64]},
-    {"name": "Target 1", "ratios": [1, 8, 9]},  # 合計 18
-    {"name": "Target 2", "ratios": [2, 1, 15]}, # 合計 18
-    {"name": "Target 2", "ratios": [3, 4, 11]}, # 合計 18
-    {"name": "Target 2", "ratios": [6, 7, 5]},  # 合計 18
+    {"name": "Target 1", "ratios": [5,12,1]},  # 合計 18
+    {"name": "Target 2", "ratios": [60,5,25]}, # 合計 18
+    {"name": "Target 3", "ratios": [7,4,7]}, # 合計 18# 合計 18
     # {'name': 'Target 3', 'ratios': [3, 5, 10]},
     # {'name': 'Target 4', 'ratios': [7, 7, 4]},
     # {'name': 'Target 2', 'ratios': [60, 25, 5]},

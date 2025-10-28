@@ -29,13 +29,14 @@ DFMMで生成された混合ツリーの無数の可能性の中から、「廃�
 MTWM_Solver_Refactored/
 ├── main.py                     # アプリケーションのエントリーポイント
 ├── config.py                   # 最適化の各種設定を行うファイル
-├── or_tools_solver.py          # OR-Toolsソルバーへの制約設定と最適化実行を担当
 ├── README.md                   # このファイル
 |
 ├── core/                       # アプリケーションの中核ロジック
 │   ├── __init__.py             # coreディレクトリをパッケージとして定義
 │   ├── problem.py              # 最適化問題の構造を定義
 │   └── dfmm.py                 # DFMMアルゴリズム関連
+│   └── or_tools_solver.py      # OR-Toolsソルバーへの制約設定と最適化実行を担当
+├
 |
 ├── runners/                    # 実行モードごとの処理フローを管理
 │   ├── __init__.py             # runnersパッケージ定義、RUNNER_MAPを保持
