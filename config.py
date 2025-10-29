@@ -70,7 +70,7 @@ RANDOM_K_RUNS = 100
 # (例: [18, {'base_sum': 18, 'multiplier': 5}, 18, 24])
 # これが空でないリストの場合、この設定が使用されます。
 RANDOM_S_RATIO_SUM_SEQUENCE = [
-    18, {'base_sum': 18, 'multiplier': 5}, 18
+   #  18, {'base_sum': 18, 'multiplier': 5}, 18
 ]
 
 # オプション2: 候補リストからのランダム選択

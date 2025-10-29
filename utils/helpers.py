@@ -2,6 +2,8 @@ import json
 import hashlib
 import random
 import re
+import math
+from functools import reduce
 
 # --- キー生成・解析関数 (docstring追加) ---
 
@@ -128,6 +130,13 @@ def parse_sharing_key(key_str_no_prefix):
     # 4. どのパターンにも一致しなかった場合
     raise ValueError(f"Unknown sharing key format: {key_str_no_prefix}")
 
+def _calculate_gcd_for_list(numbers):
+    """リスト内のすべての数値の最大公約数（GCD）を計算します。"""
+    if not numbers:
+        return 1
+    # reduceを使ってリスト全体にmath.gcdを適用
+    # (例: gcd(gcd(n1, n2), n3), ...)
+    return reduce(math.gcd, numbers)
 
 def generate_config_hash(targets_config, mode, run_name):
     """
@@ -159,21 +168,25 @@ def generate_config_hash(targets_config, mode, run_name):
     return hasher.hexdigest()
 
 
-def generate_random_ratios(reagent_count, ratio_sum):
+def generate_random_ratios(reagent_count, ratio_sum, max_retries=100):
     """
     指定された合計値(ratio_sum)になる、指定された個数(reagent_count)の
     0を含まないランダムな整数のリストを生成します。
     (例: reagent_count=3, ratio_sum=18 -> [2, 11, 5])
+    
+    生成されたリストの最大公約数(GCD)が1になる（既約である）ことを保証しようと試みます。
 
     Args:
         reagent_count (int): 生成する数値の個数 (試薬の種類の数)。
         ratio_sum (int): 目標とする合計値。
+        max_retries (int, optional): GCD=1の比率を見つけるための最大試行回数。
 
     Returns:
-        list: 0を含まず、合計が ratio_sum になる整数のリスト。
+        list: 0を含まず、合計が ratio_sum になり、GCDが1である（可能性が高い）整数のリスト。
     
     Raises:
-        ValueError: 合計値が試薬の数より少ない場合 (0を含まないため)。
+        ValueError: 合計値が試薬の数より少ない場合、または最大試行回数内に
+                    GCD=1の比率が見つからなかった場合。
     """
     # 0を含まないため、合計値は最低でも試薬の数と同じでなければならない
     if ratio_sum < reagent_count:
@@ -181,29 +194,39 @@ def generate_random_ratios(reagent_count, ratio_sum):
             f"Ratio sum ({ratio_sum}) cannot be less than the number of reagents ({reagent_count})."
         )
 
-    # ロジック:
-    # 合計値 18, 試薬数 3 の場合:
-    # 1. 1〜17 (ratio_sum - 1) の範囲から、2つ (reagent_count - 1) の「仕切り」をランダムに選ぶ
-    #    例: [5, 12]
-    # 2. 仕切りをソートする (上記例では既にソート済み)
-    # 3. 0と仕切り、仕切り同士、最後の仕切りと18の「間」を計算する
-    #    (5 - 0)   -> 5
-    #    (12 - 5)  -> 7
-    #    (18 - 12) -> 6
-    # 4. 結果: [5, 7, 6] (合計18, 0を含まない)
-    
-    # 1〜(ratio_sum-1) の範囲から、(reagent_count-1) 個のユニークな数値をランダムに選ぶ
-    dividers = sorted(random.sample(range(1, ratio_sum), reagent_count - 1))
-
-    ratios = []
-    last_divider = 0 # 最初の仕切りは 0 とする
-    
-    # 選ばれた仕切りを順番に処理
-    for d in dividers:
-        ratios.append(d - last_divider) # 1つ前の仕切りとの差をリストに追加
-        last_divider = d # 1つ前の仕切りを更新
+    # GCDが1になるまで、または最大リトライ回数に達するまでループ
+    for _ in range(max_retries):
+        # ロジック:
+        # 合計値 18, 試薬数 3 の場合:
+        # 1. 1〜17 (ratio_sum - 1) の範囲から、2つ (reagent_count - 1) の「仕切り」をランダムに選ぶ
+        #    例: [5, 12]
+        # 2. 仕切りをソートする (上記例では既にソート済み)
+        # 3. 0と仕切り、仕切り同士、最後の仕切りと18の「間」を計算する
+        #    (5 - 0)   -> 5
+        #    (12 - 5)  -> 7
+        #    (18 - 12) -> 6
+        # 4. 結果: [5, 7, 6] (合計18, 0を含まない)
         
-    # 最後の仕切りと、合計値(ratio_sum)との差をリストに追加
-    ratios.append(ratio_sum - last_divider)
+        # 1〜(ratio_sum-1) の範囲から、(reagent_count-1) 個のユニークな数値をランダムに選ぶ
+        dividers = sorted(random.sample(range(1, ratio_sum), reagent_count - 1))
 
-    return ratios
+        ratios = []
+        last_divider = 0 # 最初の仕切りは 0 とする
+        
+        # 選ばれた仕切りを順番に処理
+        for d in dividers:
+            ratios.append(d - last_divider) # 1つ前の仕切りとの差をリストに追加
+            last_divider = d # 1つ前の仕切りを更新
+            
+        # 最後の仕切りと、合計値(ratio_sum)との差をリストに追加
+        ratios.append(ratio_sum - last_divider)
+
+        # --- GCDチェックを追加 ---
+        if _calculate_gcd_for_list(ratios) == 1:
+            return ratios # GCDが1ならループを抜けて結果を返す
+        # --- ここまで ---
+
+    # 最大リトライ回数に達してもGCD=1が見つからなかった場合
+    raise ValueError(
+        f"Could not find a set of ratios with GCD=1 for sum {ratio_sum} (reagents={reagent_count}) after {max_retries} attempts."
+    )
