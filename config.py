@@ -13,12 +13,12 @@ FACTOR_EXECUTION_MODE = "random"
 # "waste": 廃棄物量の最小化を目指します。（最も重要な目的）
 # "operations": 混合操作の総回数の最小化を目指します。（プロセス簡略化）
 # "reagents": 総試薬使用量の最小化を目指します。（コスト削減）
-OPTIMIZATION_MODE = "reagents"
+OPTIMIZATION_MODE = "waste"
 
 # --- 出力設定 ---
 # Trueに設定すると、最適化完了後に混合ツリーの可視化グラフ (PNG画像) を生成します。
 # Falseに設定すると、グラフ生成をスキップし、処理時間を短縮できます。
-ENABLE_VISUALIZATION = True
+ENABLE_VISUALIZATION = False
 
 # 'file_load' モードで使用する設定ファイル名を指定します。
 # ランダム実行で生成したファイル名 (例: "manual-check_eb8386bc_1/random_configs.json") を設定すると、
@@ -55,9 +55,9 @@ ENABLE_FINAL_PRODUCT_SHARING = False
 # (RANDOM_SETTINGS 辞書を廃止し、トップレベルの変数に)
 
 # ランダムシナリオにおける試薬の種類数 (例: 3種類)
-RANDOM_T_REAGENTS = 3
+RANDOM_T_REAGENTS = 4
 # ランダムシナリオにおけるターゲット（目標混合液）の数 (例: 3ターゲット)
-RANDOM_N_TARGETS = 3
+RANDOM_N_TARGETS = 4
 # 生成・実行するランダムシナリオの総数 (例: 100回)
 RANDOM_K_RUNS = 100
 
@@ -84,7 +84,7 @@ RANDOM_S_RATIO_SUM_CANDIDATES = [
 # オプション3: デフォルト値
 # 上記の `SEQUENCE` と `CANDIDATES` が両方とも空のリストの場合、
 # このデフォルト値が全てのターゲットで使用されます。
-RANDOM_S_RATIO_SUM_DEFAULT = 12
+RANDOM_S_RATIO_SUM_DEFAULT = 18
 
 # --- 'auto' / 'auto_permutations' モード用設定 ---
 # 'auto'系モードでは、'factors' (混合階層) を指定する必要はありません。
