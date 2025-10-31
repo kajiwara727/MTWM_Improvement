@@ -18,7 +18,7 @@ OPTIMIZATION_MODE = "waste"
 # --- 出力設定 ---
 # Trueに設定すると、最適化完了後に混合ツリーの可視化グラフ (PNG画像) を生成します。
 # Falseに設定すると、グラフ生成をスキップし、処理時間を短縮できます。
-ENABLE_VISUALIZATION = False
+ENABLE_VISUALIZATION = True
 
 # 'file_load' モードで使用する設定ファイル名を指定します。
 # ランダム実行で生成したファイル名 (例: "manual-check_eb8386bc_1/random_configs.json") を設定すると、
@@ -30,7 +30,7 @@ CONFIG_LOAD_FILE = "random_configs.json"
 # ソルバーが使用するCPUコア（ワーカー）の最大数を設定します。
 # 共有マシンの場合は、 2 や 4 などの低い値に設定することを推奨します。
 # None に設定すると、Or-Toolsが利用可能な全コアを使用します。
-MAX_CPU_WORKERS = None
+MAX_CPU_WORKERS = 64
 
 # ノード間で共有（中間液を融通）できる液量の最大値を設定します。
 # 例えば 1 に設定すると、共有は「1単位ずつ」に制限されます。
@@ -55,11 +55,11 @@ ENABLE_FINAL_PRODUCT_SHARING = False
 # (RANDOM_SETTINGS 辞書を廃止し、トップレベルの変数に)
 
 # ランダムシナリオにおける試薬の種類数 (例: 3種類)
-RANDOM_T_REAGENTS = 4
+RANDOM_T_REAGENTS = 3
 # ランダムシナリオにおけるターゲット（目標混合液）の数 (例: 3ターゲット)
-RANDOM_N_TARGETS = 4
+RANDOM_N_TARGETS = 5
 # 生成・実行するランダムシナリオの総数 (例: 100回)
-RANDOM_K_RUNS = 100
+RANDOM_K_RUNS = 10
 
 # --- 混合比和の生成ルール（以下のいずれか1つが使用されます） ---
 # 以下の設定は、`runners/random_runner.py` によって上から順に評価され、
@@ -95,9 +95,9 @@ TARGETS_FOR_AUTO_MODE = [
     # {'name': 'Target 2', 'ratios': [1, 5, 6]},
     # {'name': 'Target 3', 'ratios': [4, 3, 5]},
     # {'name': 'Target 1', 'ratios': [45, 26, 64]},
-    {"name": "Target 1", "ratios": [5,12,1]},  # 合計 18
-    {"name": "Target 2", "ratios": [60,5,25]}, # 合計 18
-    {"name": "Target 3", "ratios": [7,4,7]}, # 合計 18# 合計 18
+    {'name': 'Target 1', 'ratios': [20,5,110]},
+    {'name': 'Target 2', 'ratios': [93,21,21]},
+    {'name': 'Target 3', 'ratios': [46,74,15]},
     # {'name': 'Target 3', 'ratios': [3, 5, 10]},
     # {'name': 'Target 4', 'ratios': [7, 7, 4]},
     # {'name': 'Target 2', 'ratios': [60, 25, 5]},
