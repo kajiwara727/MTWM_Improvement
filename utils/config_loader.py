@@ -1,6 +1,3 @@
-# utils/config_loader.py
-
-# config.py ファイルから全ての設定をインポート
 import config
 
 
@@ -22,6 +19,8 @@ class Config:
     OPTIMIZATION_MODE = config.OPTIMIZATION_MODE
     CONFIG_LOAD_FILE = config.CONFIG_LOAD_FILE
     ENABLE_VISUALIZATION = config.ENABLE_VISUALIZATION
+
+    MAX_CPU_WORKERS = config.MAX_CPU_WORKERS
     MAX_SHARING_VOLUME = config.MAX_SHARING_VOLUME
     MAX_LEVEL_DIFF = config.MAX_LEVEL_DIFF
     MAX_MIXER_SIZE = config.MAX_MIXER_SIZE
