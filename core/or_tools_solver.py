@@ -1,7 +1,8 @@
+# core/or_tools_solver.py (テクニック適用・互換性維持版)
 import time
 import sys
 from ortools.sat.python import cp_model  # Or-Tools の CP-SAT ソルバーをインポート
-from config import MAX_SHARING_VOLUME, MAX_MIXER_SIZE, MAX_CPU_WORKERS
+from utils.config_loader import Config
 from utils import (    
     create_dfmm_node_name,
     create_intra_key,
@@ -214,9 +215,15 @@ class OrToolsSolver:
         self.objective_mode = objective_mode
         self.model = cp_model.CpModel()     # Or-Tools のモデル本体
         self.solver = cp_model.CpSolver()   # Or-Tools のソルバー本体
-        if MAX_CPU_WORKERS is not None and MAX_CPU_WORKERS > 0:
-            print(f"--- Limiting solver CPU workers to {MAX_CPU_WORKERS} ---")
-            self.solver.parameters.num_workers = MAX_CPU_WORKERS
+        
+        # --- テクニック適用 (MAX_CPU_WORKERS の使用) ---
+        if Config.MAX_CPU_WORKERS is not None and Config.MAX_CPU_WORKERS > 0:
+            print(f"--- Limiting solver CPU workers to {Config.MAX_CPU_WORKERS} ---")
+            self.solver.parameters.num_workers = Config.MAX_CPU_WORKERS # (原文では num_search_workers)
+            
+        # --- テクニック適用 (探索ログの有効化) ---
+        self.solver.parameters.log_search_progress = True
+            
         self.forest_vars = []             # Or-Tools の DFMM ノード変数を格納
         self.peer_vars = []               # Or-Tools の ピアR ノード変数を格納
         
@@ -242,6 +249,7 @@ class OrToolsSolver:
             f"\n--- Solving the optimization problem (mode: {self.objective_mode.upper()}) with Or-Tools CP-SAT ---"
         )
         
+        # --- テクニック適用 (コールバックの代わりに、ログ有効化で進捗表示) ---
         # --- 最適化実行 ---
         status = self.solver.Solve(self.model)
         
@@ -285,9 +293,14 @@ class OrToolsSolver:
         self._set_ratio_sum_constraints()
         self._set_leaf_node_constraints()
         self._set_mixer_capacity_constraints()
-        self._set_range_constraints()
+        # --- テクニック適用 (_set_range_constraints の呼び出しを削除) ---
+        # self._set_range_constraints() 
         self._set_activity_constraints()
         self._set_peer_mixing_constraints()
+        
+        # --- テクニック適用 (対称性の破壊) ---
+        self._set_symmetry_breaking_constraints()
+        
         self.objective_variable = self._set_objective_function()
 
     def _define_or_tools_variables(self):
@@ -295,17 +308,9 @@ class OrToolsSolver:
         `core/problem.py` (Z3変数) の構造に基づき、
         Or-Tools (CP-SAT) の変数を定義し、`self.forest_vars` と
         `self.peer_vars` に格納します。
-        """
         
-        # 変数の最大値 (バウンド) を決定
-        max_ratio_sum = (
-            max(sum(t["ratios"]) for t in self.problem.targets_config)
-            if self.problem.targets_config
-            else 1
-        )
-        MAX_BOUND = max_ratio_sum * (MAX_MIXER_SIZE or 1) * 10
-        if MAX_BOUND < 900:
-            MAX_BOUND = 900
+        --- テクニック適用: 変数上限の厳密化 ---
+        """
             
         # 1. DFMMノード変数の定義
         # (self.problem.forest (Z3) の構造をイテレート)
@@ -316,33 +321,39 @@ class OrToolsSolver:
                 for node_idx, z3_node in enumerate(z3_nodes):
                     node_name = create_dfmm_node_name(target_idx, level, node_idx)
                     
+                    # --- テクニック適用 (厳密な上限値の取得) ---
+                    p_node = self.problem.p_value_maps[target_idx][(level, node_idx)]
+                    f_value = self.problem.targets_config[target_idx]["factors"][level]
+                    reagent_max = max(0, f_value - 1)
+                    
                     # Or-Tools の変数を生成
                     node_vars = {
                         "ratio_vars": [ # 比率 (r_i)
                             self.model.NewIntVar(
-                                0, MAX_BOUND, f"ratio_{node_name}_r{t}"
+                                0, p_node, f"ratio_{node_name}_r{t}" # 上限: MAX_BOUND -> p_node
                             )
                             for t in range(self.problem.num_reagents)
                         ],
                         "reagent_vars": [ # 試薬投入量 (w_r_i)
                             self.model.NewIntVar(
-                                0, MAX_BOUND, f"reagent_vol_{node_name}_r{t}"
+                                0, reagent_max, f"reagent_vol_{node_name}_r{t}" # 上限: MAX_BOUND -> reagent_max
                             )
                             for t in range(self.problem.num_reagents)
                         ],
                         "intra_sharing_vars": {}, # ツリー内共有 (w_intra)
                         "inter_sharing_vars": {}, # ツリー間共有 (w_inter)
                         "total_input_var": self.model.NewIntVar( # 総入力 (W_total)
-                            0, MAX_BOUND, f"TotalInput_{node_name}"
+                            0, f_value, f"TotalInput_{node_name}" # 上限: MAX_BOUND -> f_value
                         ),
                         "is_active_var": self.model.NewBoolVar(f"IsActive_{node_name}"), # ノードが使われているか (Bool)
                         "waste_var": self.model.NewIntVar( # 廃棄物量 (w_waste)
-                            0, MAX_BOUND, f"waste_{node_name}"
+                            0, f_value, f"waste_{node_name}" # 上限: MAX_BOUND -> f_value
                         ),
                     }
                     
                     # 共有量の上限を設定
-                    max_sharing_vol = min(MAX_BOUND, MAX_SHARING_VOLUME or MAX_BOUND)
+                    # (テクニック適用: f_value と MAX_SHARING_VOLUME の小さい方)
+                    max_sharing_vol = min(f_value, Config.MAX_SHARING_VOLUME or f_value)
                     
                     # ツリー内(Intra)共有変数を定義
                     for key in z3_node.get("intra_sharing_vars", {}).keys():
@@ -350,7 +361,7 @@ class OrToolsSolver:
                             f"share_intra_t{target_idx}_l{level}_k{node_idx}_{key}"
                         )
                         node_vars["intra_sharing_vars"][key] = self.model.NewIntVar(
-                            0, max_sharing_vol, share_name
+                            0, max_sharing_vol, share_name # 上限: max_sharing_vol (厳密化後)
                         )
                     # ツリー間(Inter)共有変数を定義
                     for key in z3_node.get("inter_sharing_vars", {}).keys():
@@ -358,7 +369,7 @@ class OrToolsSolver:
                             f"share_inter_t{target_idx}_l{level}_k{node_idx}_{key}"
                         )
                         node_vars["inter_sharing_vars"][key] = self.model.NewIntVar(
-                            0, max_sharing_vol, share_name
+                            0, max_sharing_vol, share_name # 上限: max_sharing_vol (厳密化後)
                         )
                     level_nodes.append(node_vars)
                 tree_data[level] = level_nodes
@@ -366,6 +377,7 @@ class OrToolsSolver:
             
         # 2. ピア(R)ノード変数の定義
         # (self.problem.peer_nodes (Z3) の構造をイテレート)
+        # (ピア(R)ノードの上限値は元から厳密だったため、変更なし)
         for i, z3_peer_node in enumerate(self.problem.peer_nodes):
             name = z3_peer_node["name"]
             p_val = z3_peer_node["p_value"]
@@ -599,11 +611,12 @@ class OrToolsSolver:
         """[制約7] 試薬投入量の上限
            w_reagent_i <= Factor - 1
            (TotalInput が Factor なので、1種類の試薬が Factor 以上になることはない)
+           
+           (テクニック適用により、このメソッドは冗長になったが、
+            元のファイルの構造を維持するため残しておく)
+           (ただし、_define_or_tools_variables で厳密化されたため、呼び出しは不要)
         """
-        for target_idx, level, node_idx, node_vars in self._iterate_all_nodes():
-            upper_bound = self.problem.targets_config[target_idx]["factors"][level] - 1
-            for var in node_vars.get("reagent_vars", []):
-                self.model.Add(var <= upper_bound)
+        pass # (呼び出されない)
 
     def _set_activity_constraints(self):
         """[制約8] ノードのアクティビティ制約
@@ -647,12 +660,20 @@ class OrToolsSolver:
             self.model.AddImplication(is_active, is_used)
 
     def _set_peer_mixing_constraints(self):
-        """[制約9] ピア(R)ノードの混合制約"""
+        """[制約9] ピア(R)ノードの混合制約
+           (★ Big-M法 を使用するように [9e] を修正)
+        """
+        
+        # Big-M法で使用する「十分に大きなM」を定義
+        # P値の最大値 (p_val) は、(MAX_MIXER_SIZE ^ N_LEVELS) 程度になる可能性がある
+        # 余裕を持たせて MAX_PRODUCT_BOUND (50000) をMとして使用する
+        BIG_M = MAX_PRODUCT_BOUND 
+
         for i, or_peer_node in enumerate(self.peer_vars):
             total_input = or_peer_node["total_input_var"]
-            is_active = or_peer_node["is_active_var"]
-            w_a = or_peer_node["input_vars"]["from_a"] # 材料Aからの入力 (0 or 1)
-            w_b = or_peer_node["input_vars"]["from_b"] # 材料Bからの入力 (0 or 1)
+            is_active = or_peer_node["is_active_var"] # (is_active は BoolVar (0 or 1))
+            w_a = or_peer_node["input_vars"]["from_a"] 
+            w_b = or_peer_node["input_vars"]["from_b"] 
 
             # [9a] TotalInput = w_a + w_b
             self.model.Add(total_input == w_a + w_b)
@@ -675,6 +696,10 @@ class OrToolsSolver:
             
             # [9e] ピア(R)ノードの濃度保存則 (1:1混合)
             #    2 * r_new_i = r_a_i + r_b_i
+            #    (★ Big-M法を適用)
+            #    is_active=1 => (lhs == rhs)
+            #    is_active=0 => 制約は無効 (LHSもRHSも 0 になるため)
+            
             m_a, l_a, k_a = or_peer_node["source_a_id"]
             r_a_vars = self.forest_vars[m_a][l_a][k_a]["ratio_vars"]
             m_b, l_b, k_b = or_peer_node["source_b_id"]
@@ -683,7 +708,39 @@ class OrToolsSolver:
             for reagent_idx in range(self.problem.num_reagents):
                 lhs = 2 * r_new_vars[reagent_idx]
                 rhs = r_a_vars[reagent_idx] + r_b_vars[reagent_idx]
-                self.model.Add(lhs == rhs).OnlyEnforceIf(is_active)
+
+                # (is_active=1 の場合)
+                # (lhs - rhs <= 0)  (つまり lhs <= rhs)
+                self.model.Add(lhs - rhs <= BIG_M * (1 - is_active))
+                # (lhs - rhs >= 0)  (つまり lhs >= rhs)
+                self.model.Add(lhs - rhs >= -BIG_M * (1 - is_active))
+                
+                # (is_active=0 の場合)
+                # (lhs <= BIG_M) (r_new_vars[reagent_idx]は 0 になるため lhs=0)
+                # (lhs >= -BIG_M) (r_a_vars, r_b_vars も 0 (または非アクティブノード) のはずだが、
+                #  念のため rhs も 0 になるよう制約を追加する)
+                # (r_new_vars[reagent_idx] == 0).OnlyEnforceIf(is_active.Not()) 
+                # (↑ [9d]の (sum(r_new_vars) == 0).OnlyEnforceIf(is_active.Not()) でカバーされる)
+
+    # --- テクニック適用 (対称性の破壊メソッドの追加) ---
+    def _set_symmetry_breaking_constraints(self):
+        """
+        *** テクニック適用: 対称性の破壊 ***
+        同じターゲットの同じレベルにあるノード間で、
+        総入力（または活動状態）に順序付けを行う。
+        """
+        for m, tree_vars in enumerate(self.forest_vars):
+            for l, nodes_vars_list in tree_vars.items():
+                # (nodes_vars_list は、そのレベルのノード変数の辞書のリスト)
+                if len(nodes_vars_list) > 1:
+                    for k in range(len(nodes_vars_list) - 1):
+                        # k番目のノードの総入力変数
+                        total_input_k = nodes_vars_list[k]['total_input_var']
+                        # k+1番目のノードの総入力変数
+                        total_input_k1 = nodes_vars_list[k+1]['total_input_var']
+                        
+                        # total_input_k >= total_input_k1 という制約を追加
+                        self.model.Add(total_input_k >= total_input_k1)
 
     def _set_objective_function(self):
         """[制約10] 目的関数 (最小化の対象) を定義する"""
