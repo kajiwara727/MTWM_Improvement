@@ -1,5 +1,4 @@
 import itertools
-from config import MAX_LEVEL_DIFF
 from utils.config_loader import Config
 
 from utils.helpers import (
@@ -146,7 +145,7 @@ class MTWMProblem:
                 )
             if not is_valid_level_connection:
                 continue
-            if MAX_LEVEL_DIFF is not None and l_src_eff > dst_level + MAX_LEVEL_DIFF:
+            if Config.MAX_LEVEL_DIFF is not None and l_src_eff > dst_level + Config.MAX_LEVEL_DIFF:
                 continue
             if (p_dst // f_dst) % p_src != 0:
                 continue
