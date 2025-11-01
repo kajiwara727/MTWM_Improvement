@@ -220,6 +220,18 @@ class OrToolsSolver:
         if Config.MAX_CPU_WORKERS is not None and Config.MAX_CPU_WORKERS > 0:
             print(f"--- Limiting solver CPU workers to {Config.MAX_CPU_WORKERS} ---")
             self.solver.parameters.num_workers = Config.MAX_CPU_WORKERS # (原文では num_search_workers)
+
+        # --- (1) 全体の最大時間制限 (ハードストップ) ---
+        max_time = Config.MAX_TIME_PER_RUN_SECONDS
+        if max_time is not None and max_time > 0:
+            print(f"--- Setting max time per run to {max_time} seconds ---")
+            self.solver.parameters.max_time_in_seconds = float(max_time)
+
+        # --- (2) 絶対ギャップによる停止設定 (早期停止) ---
+        gap_limit = Config.ABSOLUTE_GAP_LIMIT
+        if gap_limit is not None and gap_limit > 0:
+            print(f"--- Setting absolute gap limit to {gap_limit} ---")
+            self.solver.parameters.absolute_gap_limit = float(gap_limit)
             
         # --- テクニック適用 (探索ログの有効化) ---
         self.solver.parameters.log_search_progress = True
